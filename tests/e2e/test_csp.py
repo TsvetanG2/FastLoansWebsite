@@ -41,6 +41,7 @@ with sync_playwright() as p:
         for k in ['strict-transport-security', 'x-content-type-options', 'referrer-policy', 'permissions-policy', 'x-frame-options']:
             ok(f'[{w}] header {k}', k in hdr)
         ok(f'[{w}] fonts load (font-src self)', page.evaluate("document.fonts.check('16px \"Manrope Variable\"') && document.fonts.check('16px \"Playfair Display Variable\"')"))
+        ok(f'[{w}] Vercel Analytics script requested same-origin', page.evaluate("performance.getEntriesByType('resource').some(e => e.name.endsWith('/_vercel/insights/script.js'))"))
         ok(f'[{w}] hero image loads', page.evaluate("document.querySelector('.hero-bg').naturalWidth > 0"))
         # Scripts run: the form moves to step 2, which loads Turnstile from challenges.cloudflare.com
         page.fill('#firstName', 'Иван'); page.fill('#lastName', 'Петров'); page.fill('#phone', '888123456'); page.fill('#email', 'a@b.bg')

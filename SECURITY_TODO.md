@@ -19,6 +19,8 @@
 
 ## Добавени при изпълнението
 
+- [ ] **Vercel → Analytics → Enable** (Web Analytics). Без това `/_vercel/insights/script.js` не съществува и няма статистика.
+
 - [ ] **Vercel → Environment Variables:**
   - преименувай `TURNSTILE_SITE_KEY` → **`PUBLIC_TURNSTILE_SITE_KEY`** (иначе build-ът спира)
   - Upstash от Vercel Marketplace: `UPSTASH_REDIS_REST_URL` и `UPSTASH_REDIS_REST_TOKEN`

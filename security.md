@@ -59,10 +59,10 @@ Content-Security-Policy: default-src 'self'; script-src 'self' https://challenge
 
 ## Cookies
 
-- The site itself sets **no cookies** and uses no analytics, pixels or third-party embeds besides Turnstile.
+- The site itself sets **no cookies** and uses no pixels or third-party embeds besides Turnstile. Analytics: **Vercel Web Analytics** only (cookieless, same-origin `/_vercel/insights`, no IP stored) — added 2026-10-23 by client decision.
 - Turnstile may store a technical identifier used only for bot detection. This is strictly necessary for security → no consent banner needed, but it must be named in `/poveritelnost` (section „Бисквитки“).
 - Update `/poveritelnost` (section „Получатели“): add **Upstash** (rate limiting, EU region, stores only hashed identifiers for up to 24 h) as a processor.
-- Adding any analytics or marketing tool later requires a consent banner first. Do not add one now.
+- Adding any analytics or marketing tool that sets cookies or tracks across sites requires a consent banner first. Cookieless Vercel Web Analytics is the exception (named in `/privacy`).
 
 ## Dependencies & secrets
 

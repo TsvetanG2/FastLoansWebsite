@@ -1,5 +1,6 @@
 // Serves the production build (.vercel/output/static) with the response headers from
-// .vercel/output/config.json, to test the CSP in a real browser. No API routes.
+// .vercel/output/config.json, to test the CSP in a real browser. No API routes;
+// /_vercel/insights (Web Analytics) is stubbed.
 // Usage: npm run build && node tests/e2e/serve-output.mjs [port=4500]
 import fs from 'node:fs';
 import http from 'node:http';
@@ -18,6 +19,12 @@ http
   .createServer((req, res) => {
     const url = new URL(req.url, 'http://x');
     for (const r of headerRoutes) if (new RegExp(r.src).test(url.pathname)) for (const [k, v] of Object.entries(r.headers)) res.setHeader(k, v);
+    // Vercel serves Web Analytics at /_vercel/insights; stand in for it locally
+    if (url.pathname.startsWith('/_vercel/insights')) {
+      res.statusCode = url.pathname.endsWith('.js') ? 200 : 204;
+      res.setHeader('content-type', 'text/javascript');
+      return res.end(url.pathname.endsWith('.js') ? '/* local stand-in for Vercel Web Analytics */' : '');
+    }
     let file = path.join(ROOT, decodeURIComponent(url.pathname));
     if (fs.existsSync(file) && fs.statSync(file).isDirectory()) file = path.join(file, 'index.html');
     if (!file.startsWith(ROOT) || !fs.existsSync(file)) {
