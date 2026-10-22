@@ -47,9 +47,27 @@ export function formatMonths(n: number) {
 const text = (min: number, max: number, required: string, tooLong: string) =>
   z.string().check(z.overwrite(oneLine), z.minLength(min, required), z.maxLength(max, tooLong));
 
+/**
+ * Free-form address: street, ж.к., квартал, village… — no fixed format ("ул." is not required).
+ * Empty → "Въведете…"; 1–2 characters → too short.
+ */
+const address = (required: string) =>
+  z.string().check(
+    z.overwrite(oneLine),
+    z.minLength(1, required),
+    z.minLength(3, 'Адресът е твърде кратък.'),
+    z.maxLength(200, 'Адресът може да е най-много 200 символа.'),
+  );
+
+/** Letters (Cyrillic or Latin) in words joined by single spaces or hyphens. */
+const NAME_RE = /^[\p{Script=Cyrillic}\p{Script=Latin}]+(?:[ -][\p{Script=Cyrillic}\p{Script=Latin}]+)*$/u;
+const NAME_CHARS = 'Използвайте само букви, интервал или тире.';
+const name = (required: string, tooLong: string) =>
+  z.string().check(z.overwrite(oneLine), z.minLength(2, required), z.maxLength(40, tooLong), z.regex(NAME_RE, NAME_CHARS));
+
 export const applicationSchema = z.object({
-  firstName: text(2, 40, 'Въведете името си.', 'Името може да е най-много 40 символа.'),
-  lastName: text(2, 40, 'Въведете фамилията си.', 'Фамилията може да е най-много 40 символа.'),
+  firstName: name('Въведете името си.', 'Името може да е най-много 40 символа.'),
+  lastName: name('Въведете фамилията си.', 'Фамилията може да е най-много 40 символа.'),
   phone: z.string().check(
     z.overwrite(normalizePhone),
     z.regex(PHONE_RE, 'Въведете телефон след +359, например 888 123 456.'),
@@ -60,8 +78,8 @@ export const applicationSchema = z.object({
     z.email('Въведете валиден имейл, например ivan@mail.bg.'),
   ),
   purpose: z.enum(keys(PURPOSES), 'Изберете причина за финансиране.'),
-  currentAddress: text(5, 200, 'Въведете настоящия си адрес.', 'Адресът може да е най-много 200 символа.'),
-  idAddress: text(5, 200, 'Въведете адреса си по лична карта.', 'Адресът може да е най-много 200 символа.'),
+  currentAddress: address('Въведете настоящия си адрес.'),
+  idAddress: address('Въведете адреса си по лична карта.'),
   housing: z.enum(keys(HOUSING), 'Изберете къде живеете.'),
   occupation: text(2, 100, 'Напишете какво работите.', 'Текстът може да е най-много 100 символа.'),
   amount: z.coerce.number().check(
@@ -76,6 +94,16 @@ export const applicationSchema = z.object({
   ),
   city: z.enum(CITIES, 'Изберете град от списъка.'),
   consent: z.literal(true, 'Необходимо е да приемете Общите условия и Политиката за поверителност.'),
+});
+
+/**
+ * Everything the browser may send to /api/apply. Strict: any unknown key rejects the request.
+ * `company_website` is the honeypot, `turnstileToken` the Turnstile response (≤ 2048 chars per Cloudflare).
+ */
+export const requestSchema = z.strictObject({
+  ...applicationSchema.shape,
+  company_website: z.optional(z.string().check(z.maxLength(200))),
+  turnstileToken: z.string().check(z.maxLength(2048)),
 });
 
 export type Application = z.infer<typeof applicationSchema>;

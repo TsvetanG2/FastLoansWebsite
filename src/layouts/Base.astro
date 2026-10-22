@@ -36,11 +36,6 @@ const ogImage = new URL('/og.png', Astro.site);
     <meta property="og:image:height" content="630" />
     <meta name="twitter:card" content="summary_large_image" />
 
-    <!-- Sections fade in on scroll; set before first paint so nothing flashes.
-         Without JS (or IntersectionObserver) everything simply stays visible. -->
-    <script is:inline>
-      if ('IntersectionObserver' in window) document.documentElement.classList.add('js-reveal');
-    </script>
   </head>
   <body>
     <a class="skip-link" href="#main">Към съдържанието</a>

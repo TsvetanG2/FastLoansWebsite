@@ -1,6 +1,8 @@
 // Email templates: table layout + inline styles so Gmail and Outlook render them.
 // No remote images (logo is a text wordmark) and no tracking pixels.
 import { site } from '../config/site';
+import { agentStatement } from '../data/company';
+import { subjectSafe } from './security';
 import { HOUSING, PURPOSES, formatEur, formatMonths, type Application } from './application';
 
 const C = {
@@ -42,7 +44,7 @@ function layout(title: string, inner: string) {
       ${inner}
     </td></tr>
     <tr><td align="center" style="padding:20px 8px 0 8px;font-family:${SANS};font-size:12px;line-height:18px;color:${C.muted};">
-      ${esc(site.legalName)} · ЕИК ${esc(site.eik)} · Рег. № в БНБ ${esc(site.bnbRegistration)}
+      ${esc(agentStatement)}
     </td></tr>
   </table>
 </td></tr>
@@ -54,7 +56,8 @@ function layout(title: string, inner: string) {
 /** Email to the company with every field of the application. */
 export function leadEmail(a: Application, submittedAt: Date) {
   const name = `${a.firstName} ${a.lastName}`;
-  const subject = `Нова заявка: ${formatEur(a.amount)} / ${a.term} мес. — ${name}`;
+  // Subject: no CR/LF (header injection) and the name cut to 40 chars
+  const subject = `Нова заявка: ${formatEur(a.amount)} / ${a.term} мес. — ${subjectSafe(name, 40)}`;
   const rows: [string, string][] = [
     ['Желана сума', formatEur(a.amount)],
     ['Срок', formatMonths(a.term)],
@@ -111,7 +114,7 @@ export function confirmationEmail() {
     '',
     `Ако имаш въпроси, обади ни се на ${site.phone.display} (${site.hours}).`,
     '',
-    `${site.legalName} · ЕИК ${site.eik} · Рег. № в БНБ ${site.bnbRegistration}`,
+    agentStatement,
   ].join('\n');
   return { subject, html, text };
 }

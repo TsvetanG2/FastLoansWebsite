@@ -2,11 +2,12 @@
 import { ArrowLeft, ArrowRight, ChevronDown, CircleCheck, Lock, RotateCcw } from '@lucide/astro';
 import { AMOUNT, HOUSING, PURPOSES, TERM, formatEur, formatMonths } from '../lib/application';
 import { CITIES } from '../lib/cities';
+import { agentStatement } from '../data/company';
 
 const pct = (v: number, min: number, max: number) => `${((v - min) / (max - min)) * 100}%`;
 const STEP_TITLES = ['Лични данни', 'Адрес и работа', 'Сума и срок'];
 ---
-<div class="apply" id="kandidatstvai">
+<div class="apply" id="apply">
   <form class="apply-form" id="apply-form" novalidate data-step="1">
     <h2 class="apply-title">Кандидатствайте за кредит</h2>
 
@@ -78,13 +79,13 @@ const STEP_TITLES = ['Лични данни', 'Адрес и работа', 'С�
 
       <div class="field">
         <label for="currentAddress">Настоящ адрес</label>
-        <input id="currentAddress" name="currentAddress" type="text" autocomplete="street-address" maxlength="200" placeholder="ул., №, бл., вх., ап." required aria-describedby="currentAddress-error" />
+        <input id="currentAddress" name="currentAddress" type="text" autocomplete="street-address" maxlength="200" placeholder="напр. ж.к. Младост 1, бл. 79" required aria-describedby="currentAddress-error" />
         <p class="error" id="currentAddress-error" data-error-for="currentAddress"></p>
       </div>
 
       <div class="field">
         <label for="idAddress">Адрес по лична карта</label>
-        <input id="idAddress" name="idAddress" type="text" autocomplete="off" maxlength="200" required aria-describedby="idAddress-error" />
+        <input id="idAddress" name="idAddress" type="text" autocomplete="off" maxlength="200" placeholder="както е записан в личната карта" required aria-describedby="idAddress-error" />
         <p class="error" id="idAddress-error" data-error-for="idAddress"></p>
       </div>
 
@@ -203,8 +204,8 @@ const STEP_TITLES = ['Лични данни', 'Адрес и работа', 'С�
 
       <!-- Honeypot: hidden from people and assistive tech, bots tend to fill it -->
       <div class="hp" aria-hidden="true">
-        <label for="website">Уебсайт</label>
-        <input id="website" name="website" type="text" tabindex="-1" autocomplete="off" />
+        <label for="company_website">Уебсайт на фирмата</label>
+        <input id="company_website" name="company_website" type="text" tabindex="-1" autocomplete="off" />
       </div>
 
       <div class="turnstile" id="turnstile"></div>
@@ -215,6 +216,12 @@ const STEP_TITLES = ['Лични данни', 'Адрес и работа', 'С�
           <span data-label>Изпратете заявката</span> <ArrowRight aria-hidden="true" />
         </button>
       </div>
+
+      <p class="disclaimer">
+        Подаването на заявка не е договор за кредит. Договор се сключва след одобрение и предоставяне на
+        преддоговорна информация.
+      </p>
+      <p class="disclaimer">{agentStatement}</p>
     </fieldset>
     </div>
 
@@ -238,7 +245,7 @@ const STEP_TITLES = ['Лични данни', 'Адрес и работа', 'С�
 </div>
 
 <script>
-  import { TURNSTILE_SITE_KEY } from 'astro:env/client';
+  import { PUBLIC_TURNSTILE_SITE_KEY } from 'astro:env/client';
   import { AMOUNT, FIELDS, STEPS, formatEur, formatMonths, validate, type Field, type FieldErrors } from '../lib/application';
 
   type Turnstile = {
@@ -481,7 +488,8 @@ const STEP_TITLES = ['Лични данни', 'Адрес и работа', 'С�
     if (document.getElementById('cf-turnstile-script')) return;
     (window as any).onTurnstileLoad = () => {
       widgetId = window.turnstile!.render(document.getElementById('turnstile')!, {
-        sitekey: TURNSTILE_SITE_KEY,
+        sitekey: PUBLIC_TURNSTILE_SITE_KEY,
+        action: 'apply', // verified server-side
         theme: 'dark',
         language: 'bg',
         appearance: 'interaction-only',
@@ -559,7 +567,7 @@ const STEP_TITLES = ['Лични данни', 'Адрес и работа', 'С�
         headers: { 'content-type': 'application/json' },
         body: JSON.stringify({
           ...values(),
-          website: (form.elements.namedItem('website') as HTMLInputElement).value,
+          company_website: (form.elements.namedItem('company_website') as HTMLInputElement).value,
           turnstileToken,
         }),
       });
@@ -590,7 +598,8 @@ const STEP_TITLES = ['Лични данни', 'Адрес и работа', 'С�
         resetTurnstile();
         return;
       }
-      showAlert(data.message ?? 'Заявката не беше изпратена заради технически проблем. Опитайте отново.', true);
+      // 429 says "try again later": a retry button right away would only hit the limit again
+      showAlert(data.message ?? 'Заявката не беше изпратена заради технически проблем. Опитайте отново.', res.status !== 429);
       resetTurnstile();
     } catch {
       showAlert('Няма връзка със сървъра. Проверете интернет връзката си и опитайте отново.', true);
@@ -867,6 +876,8 @@ const STEP_TITLES = ['Лични данни', 'Адрес и работа', 'С�
   }
   .link-btn:hover { color: var(--text); }
   .link-btn :global(svg) { width: 1rem; height: 1rem; }
+
+  .disclaimer { font-size: 0.8rem; line-height: 1.5; color: var(--text-muted); text-align: center; }
 
   .hp {
     position: absolute !important;

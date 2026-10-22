@@ -1,0 +1,340 @@
+import json, sys, urllib.request
+from playwright.sync_api import sync_playwright, expect
+
+# Run against `astro dev` started with RESEND_BASE_URL=http://127.0.0.1:8790 and
+# UPSTASH_REDIS_REST_URL=http://127.0.0.1:8791 UPSTASH_REDIS_REST_TOKEN=test (see README).
+import os
+BASE = 'http://localhost:4321'
+MOCK = 'http://127.0.0.1:8790'
+UPSTASH = 'http://127.0.0.1:8791'
+OUT = sys.argv[1] if len(sys.argv) > 1 else 'test-results'
+os.makedirs(OUT, exist_ok=True)
+API_HEADERS = {'origin': BASE}
+results = []
+ip_counter = [0]
+
+STEP_FIELDS = [
+    ['firstName', 'lastName', 'phone', 'email'],
+    ['purpose', 'currentAddress', 'idAddress', 'city', 'housing', 'occupation'],
+    ['amount', 'term', 'consent'],
+]
+VALID_API = {
+    'firstName': 'Иван', 'lastName': 'Петров', 'phone': '0888123456', 'email': 'a@b.bg',
+    'purpose': 'bills', 'currentAddress': 'ул. Шипка 10', 'idAddress': 'ул. Витоша 5',
+    'housing': 'rent', 'occupation': 'Счетоводител', 'amount': 1000, 'term': 12, 'city': 'София', 'consent': True,
+}
+
+
+def ok(name, cond, detail=''):
+    results.append((name, bool(cond), detail))
+    print(('PASS ' if cond else 'FAIL ') + name + (f' — {detail}' if detail and not cond else ''))
+
+
+def mock(path, data=None):
+    req = urllib.request.Request(MOCK + path, data=json.dumps(data).encode() if data is not None else None, method='POST' if data is not None else 'GET')
+    return urllib.request.urlopen(req).read().decode()
+
+
+def sent():
+    return json.loads(mock('/__sent'))
+
+
+def reset_limits():
+    urllib.request.urlopen(urllib.request.Request(UPSTASH + '/__reset', data=b'{}', method='POST')).read()
+
+
+def upstash_keys():
+    return json.loads(urllib.request.urlopen(UPSTASH + '/__keys').read())
+
+
+def new_page(browser, width, height):
+    reset_limits()
+    ip_counter[0] += 1
+    ctx = browser.new_context(viewport={'width': width, 'height': height}, locale='bg-BG')
+    ctx.set_extra_http_headers({'x-real-ip': f'10.0.0.{ip_counter[0]}'})
+    page = ctx.new_page()
+    errors = []
+    page.on('console', lambda m: errors.append(m.text) if m.type == 'error' else None)
+    page.on('pageerror', lambda e: errors.append(str(e)))
+    page.goto(BASE)
+    page.wait_for_load_state('networkidle')
+    return ctx, page, errors
+
+
+def step(page):
+    return page.get_attribute('#apply-form', 'data-step')
+
+
+def settle(page):
+    page.wait_for_function("document.getAnimations().filter(a => a.playState === 'running').length === 0")
+
+
+def next_btn(page):
+    page.locator('fieldset:not([disabled]) [data-action="next"]').click()
+    settle(page)
+
+
+def back_btn(page):
+    page.locator('fieldset:not([disabled]) [data-action="back"]').click()
+    settle(page)
+
+
+def bar(page, i):
+    return float(page.evaluate(f"getComputedStyle(document.querySelectorAll('.progress-bar li')[{i}]).getPropertyValue('--p') || '0'"))
+
+
+def fill_step1(page, email='delivered+applicant@resend.dev'):
+    page.fill('#firstName', 'Иван')
+    page.fill('#lastName', 'Петров')
+    page.fill('#phone', '0888 123 456')
+    page.fill('#email', email)
+
+
+def fill_step2(page):
+    page.select_option('#purpose', 'refinance')
+    page.fill('#currentAddress', 'ж.к. Младост 1, бл. 79')  # no "ул." needed
+    page.fill('#idAddress', 'ул. Витоша 5')
+    page.select_option('#city', 'Бяла (обл. Русе)')
+    page.select_option('#housing', 'relatives')
+    page.fill('#occupation', 'Шофьор')
+
+
+def fill_step3(page):
+    page.check('#consent')
+
+
+def fill_all(page, **kw):
+    fill_step1(page, **kw); next_btn(page)
+    fill_step2(page); next_btn(page)
+    fill_step3(page)
+
+
+def submit(page):
+    page.click('[data-submit]')
+
+
+with sync_playwright() as p:
+    browser = p.chromium.launch(headless=True)
+
+    for label, (w, h) in {'mobile-375': (375, 812), 'desktop-1440': (1440, 900)}.items():
+        mock('/__reset', {})
+        ctx, page, errors = new_page(browser, w, h)
+        page.screenshot(path=f'{OUT}/{label}-full.png', full_page=True)
+        sw = page.evaluate('document.documentElement.scrollWidth')
+        ok(f'[{label}] no horizontal scroll', sw <= w, f'scrollWidth={sw}')
+        ok(f'[{label}] starts on step 1', step(page) == '1')
+        ok(f'[{label}] no ЕГН field', page.locator('text=ЕГН').count() == 0)
+        ok(f'[{label}] hero has no CTA button', page.locator('.hero-copy a.btn').count() == 0)
+        ok(f'[{label}] phone shows +359 prefix', page.text_content('.phone-prefix').strip() == '+359')
+        h1 = page.locator('#apply-form').bounding_box()['height']
+        ok(f'[{label}] city list has 257 towns', page.locator('#city option:not([value=""])').count() == 257)
+
+        # Progress fills per valid field
+        ok(f'[{label}] bars start empty', bar(page, 0) == 0 and bar(page, 1) == 0 and bar(page, 2) == 0)
+        page.fill('#firstName', 'Иван'); page.locator('#lastName').click()
+        ok(f'[{label}] bar 1 = 1/4 after first name', abs(bar(page, 0) - 0.25) < 0.01, str(bar(page, 0)))
+        page.fill('#firstName', '')
+        ok(f'[{label}] bar 1 back to 0 when cleared', bar(page, 0) == 0)
+
+        # Step 1 errors
+        page.locator('#apply').screenshot(path=f'{OUT}/{label}-step1.png')
+        next_btn(page)
+        ok(f'[{label}] step 1 blocked when empty', step(page) == '1')
+        for f in STEP_FIELDS[0]:
+            msg = (page.text_content(f'#{f}-error') or '').strip()
+            ok(f'[{label}] empty {f} shows error', msg != '', msg)
+            ok(f'[{label}] {f} has aria-invalid', page.get_attribute(f'#{f}', 'aria-invalid') == 'true')
+        ok(f'[{label}] focus on first invalid (firstName)', page.evaluate('document.activeElement.id') == 'firstName')
+        page.locator('#apply').screenshot(path=f'{OUT}/{label}-step1-errors.png')
+
+        fill_step1(page)
+        for f, bad, expected in [('firstName', 'И', 'Въведете името си'), ('phone', '12345', 'Въведете телефон след +359'), ('email', 'ivan@', 'Въведете валиден имейл')]:
+            good = page.input_value(f'#{f}')
+            page.fill(f'#{f}', bad)
+            next_btn(page)
+            msg = page.text_content(f'#{f}-error') or ''
+            ok(f'[{label}] invalid {f} -> "{expected}"', expected in msg and step(page) == '1', msg)
+            page.fill(f'#{f}', good)
+            ok(f'[{label}] {f} error clears when fixed', (page.text_content(f'#{f}-error') or '') == '')
+        ok(f'[{label}] bar 1 full when step valid', abs(bar(page, 0) - 1) < 0.01)
+        next_btn(page)
+        ok(f'[{label}] step 1 -> step 2', step(page) == '2')
+        page.wait_for_timeout(500)
+        h2 = page.locator('#apply-form').bounding_box()['height']
+        ok(f'[{label}] city is right after idAddress', page.evaluate("document.getElementById('idAddress').closest('.field').nextElementSibling.querySelector('#city') !== null"))
+
+        # Step 2 errors
+        next_btn(page)
+        ok(f'[{label}] step 2 blocked when empty', step(page) == '2')
+        for f in STEP_FIELDS[1]:
+            msg = (page.text_content(f'#{f}-error') or '').strip()
+            ok(f'[{label}] empty {f} shows error', msg != '', msg)
+        ok(f'[{label}] focus on purpose', page.evaluate('document.activeElement.id') == 'purpose')
+        opts = page.locator('#purpose option:not([value=""])').all_text_contents()
+        ok(f'[{label}] purpose options', opts == ['Покупка на вещи', 'Плащане на сметки', 'Рефинансиране на други задължения', 'Друго'], str(opts))
+        opts = page.locator('#housing option:not([value=""])').all_text_contents()
+        ok(f'[{label}] housing options', opts == ['Да', 'При роднини', 'Под наем', 'Друго'], str(opts))
+        fill_step2(page)
+        ok(f'[{label}] select error clears on change', (page.text_content('#purpose-error') or '') == '')
+        page.locator('#apply').screenshot(path=f'{OUT}/{label}-step2.png')
+        back_btn(page)
+        ok(f'[{label}] back to step 1 keeps values', step(page) == '1' and page.input_value('#firstName') == 'Иван')
+        next_btn(page); next_btn(page)
+        ok(f'[{label}] step 2 -> step 3', step(page) == '3')
+        page.wait_for_timeout(500)
+        h3 = page.locator('#apply-form').bounding_box()['height']
+        ok(f'[{label}] form height follows the step', h2 > h1 and abs(h2 - h3) > 1, f'{h1} {h2} {h3}')
+        ok(f'[{label}] inactive steps not rendered', page.evaluate("[...document.querySelectorAll('.step:disabled')].every(s => getComputedStyle(s).display === 'none')"))
+        ok(f'[{label}] step 3 bar starts at 2/3 (amount+term)', abs(bar(page, 2) - 2/3) < 0.01, str(bar(page, 2)))
+
+        # Step 3: sliders, city, consent
+        page.fill('#amount', '3333'); page.locator('#amount').blur()
+        ok(f'[{label}] amount snaps to step of 50', page.input_value('#amount') == '3350')
+        ok(f'[{label}] slider follows number input', page.input_value('#amount-range') == '3350')
+        page.fill('#amount', '99999'); page.locator('#amount').blur()
+        ok(f'[{label}] amount clamps to max 5000', page.input_value('#amount') == '5000')
+        page.locator('#term').fill('24')
+        ok(f'[{label}] term output updates', '24 месеца' in page.text_content('#term-output'))
+        submit(page)
+        ok(f'[{label}] consent error', 'Общите условия' in (page.text_content('#consent-error') or ''))
+        ok(f'[{label}] consent links terms + privacy', page.locator('label[for=consent] a[href="/terms"]').count() == 1 and page.locator('label[for=consent] a[href="/privacy"]').count() == 1)
+        ok(f'[{label}] disclaimer under submit', 'не е договор за кредит' in (page.text_content('.disclaimer') or ''))
+        ok(f'[{label}] no email on invalid submit', len(sent()) == 0)
+        fill_step3(page)
+        page.locator('#apply').screenshot(path=f'{OUT}/{label}-step3.png')
+
+        submit(page)
+        expect(page.locator('#apply-success')).to_be_visible(timeout=20000)
+        ok(f'[{label}] success state shown', 'Ще се свържем с Вас' in page.text_content('#apply-success'))
+        ok(f'[{label}] success has focus', page.evaluate('document.activeElement.id') == 'apply-success')
+        s = sent()
+        ok(f'[{label}] two emails sent', len(s) == 2, str(len(s)))
+        if len(s) == 2:
+            lead = next(e for e in s if e['kind'] == 'lead')
+            conf = next(e for e in s if e['kind'] == 'confirm')
+            ok(f'[{label}] lead subject', lead['subject'] == 'Нова заявка: 5 000 € / 24 мес. — Иван Петров', lead['subject'])
+            ok(f'[{label}] lead reply_to = applicant', lead.get('reply_to') in ('delivered+applicant@resend.dev', ['delivered+applicant@resend.dev']))
+            ok(f'[{label}] lead has html + text', bool(lead.get('html')) and bool(lead.get('text')))
+            want = ['5 000 €', '24 месеца', 'Име: Иван', 'Фамилия: Петров', '+359888123456', 'delivered+applicant@resend.dev',
+                    'Рефинансиране на други задължения', 'Град: Бяла (обл. Русе)', 'ж.к. Младост 1, бл. 79', 'ул. Витоша 5',
+                    'При роднини', 'Какво работи: Шофьор', 'Съгласие: Да']
+            missing = [x for x in want if x not in lead['text']]
+            ok(f'[{label}] lead has all fields', not missing, str(missing))
+            ok(f'[{label}] lead html has fields', 'Бяла (обл. Русе)' in lead['html'] and 'Шофьор' in lead['html'])
+            body = conf['html'] + conf['text'] + conf['subject']
+            ok(f'[{label}] confirmation text', 'Получихме кандидатурата ти. Наш консултант ще се свърже с теб скоро.' in conf['text'])
+            ok(f'[{label}] confirmation has no personal data', not any(x in body for x in ['5 000', '24 мес', 'Иван', 'Петров', '888123456', 'Шипка', 'Витоша', 'Шофьор', 'Бяла']))
+            ok(f'[{label}] emails carry agent statement', 'Royal Finance е търговска марка на „Глобъл Профинанс“ ЕООД, която действа като агент на „Тием Финанси“ ООД, ЕИК 202786529, вписано в регистъра на финансовите институции към БНБ под № BGR00464.' in conf['text'] and 'агент на „Тием Финанси“ ООД' in lead['html'])
+            ok(f'[{label}] confirmation never says одобрена/приета', not any(x in body.lower() for x in ['одобрен', 'приет']))
+        ok(f'[{label}] no console errors', not errors, '; '.join(errors))
+        ctx.close()
+
+    # Lead email fails -> error with retry -> retry succeeds
+    mock('/__reset', {}); mock('/__mode', {'lead': 'fail'})
+    ctx, page, errors = new_page(browser, 375, 812)
+    fill_all(page); submit(page)
+    expect(page.locator('#form-alert')).to_be_visible(timeout=20000)
+    ok('lead failure -> error message', 'технически проблем' in page.text_content('#form-alert-text'))
+    ok('lead failure -> retry button visible', page.locator('[data-action="retry"]').is_visible())
+    ok('lead failure -> no confirmation sent', all(e['kind'] == 'lead' for e in sent()))
+    page.screenshot(path=f'{OUT}/error-retry.png')
+    mock('/__mode', {'lead': 'ok'})
+    page.click('[data-action="retry"]')
+    expect(page.locator('#apply-success')).to_be_visible(timeout=20000)
+    ok('retry after failure -> success', True)
+    ctx.close()
+
+    # Only confirmation fails -> still success
+    mock('/__reset', {}); mock('/__mode', {'confirm': 'fail'})
+    ctx, page, errors = new_page(browser, 1440, 900)
+    fill_all(page); submit(page)
+    expect(page.locator('#apply-success')).to_be_visible(timeout=20000)
+    ok('confirmation failure -> user still sees success', True)
+    ctx.close()
+    mock('/__mode', {'confirm': 'ok'})
+
+    # Honeypot -> fake success, nothing sent
+    mock('/__reset', {})
+    ctx, page, errors = new_page(browser, 1440, 900)
+    fill_all(page)
+    page.evaluate("document.getElementById('company_website').value = 'http://spam.example'")
+    submit(page)
+    expect(page.locator('#apply-success')).to_be_visible(timeout=20000)
+    ok('honeypot -> no emails sent', len(sent()) == 0)
+    ctx.close()
+
+    # Server-side checks, independent of the browser
+    reset_limits()
+    ctx = browser.new_context(extra_http_headers={'x-real-ip': '10.0.1.1'})
+    post = lambda data=None, headers=None, **kw: ctx.request.post(f'{BASE}/api/apply', headers={**API_HEADERS, **(headers or {})}, data=data, **kw)
+    r = post({'amount': 100, 'term': 2, 'purpose': 'x', 'housing': 'x', 'city': 'Атлантида', 'consent': False, 'turnstileToken': ''})
+    body = r.json()
+    all_fields = {f for s in STEP_FIELDS for f in s}
+    ok('server rejects invalid data with 422 (all fields)', r.status == 422 and set(body['errors']) == all_fields, f'{r.status} {sorted(set(all_fields) - set(body.get("errors", {})))}')
+    r = post({**VALID_API, 'turnstileToken': ''})
+    ok('missing Turnstile token -> 403', r.status == 403, str(r.status))
+    r = post({**VALID_API, 'egn': '8001011234', 'turnstileToken': 'x'})
+    ok('unknown key (strict schema) -> 400', r.status == 400, str(r.status))
+    r = post({**VALID_API, 'website': 'x', 'turnstileToken': 'x'})
+    ok('old honeypot name is an unknown key -> 400', r.status == 400, str(r.status))
+    r = post('hi', headers={'content-type': 'text/plain'})
+    ok('non-JSON -> 403', r.status == 403, str(r.status))
+    r = post({**VALID_API, 'turnstileToken': 'x'}, headers={'origin': 'https://evil.example'})
+    ok('foreign Origin -> 403', r.status == 403, str(r.status))
+    r = ctx.request.post(f'{BASE}/api/apply', data={**VALID_API, 'turnstileToken': 'x'})
+    ok('missing Origin -> 403', r.status == 403, str(r.status))
+    r = ctx.request.get(f'{BASE}/api/apply')
+    ok('GET /api/apply -> 403', r.status == 403, str(r.status))
+    r = post(b'{"x":"' + b'x' * 5000 + b'"}', headers={'content-type': 'application/json'})
+    ok('oversized body (> 4 KB) -> 413', r.status == 413, str(r.status))
+    r = post(b'{"a":', headers={'content-type': 'application/json'})
+    ok('broken JSON -> 400', r.status == 400, str(r.status))
+    for raw, want in [('888 123 456', 403), ('0888 123 456', 403), ('+359 888 123 456', 403), ('00359888123456', 403), ('2 980 1234', 403), ('12345', 422), ('', 422)]:
+        r = post({**VALID_API, 'phone': raw, 'turnstileToken': ''})
+        ok(f'server phone "{raw}" -> {want}', r.status == want, str(r.status))
+    r = ctx.request.get(f'{BASE}/api/health')
+    ok('GET /api/health -> 200 "ok"', r.status == 200 and r.text() == 'ok', f'{r.status} {r.text()!r}')
+    ctx.close()
+
+    # Rate limits (Upstash mock). Valid payloads with the Turnstile test token reach the limiter.
+    DUMMY = 'XXXX.DUMMY.TOKEN.XXXX'
+    # Unique per run: the server keeps blocked identifiers in memory (ephemeral cache) until the window ends
+    RUN = __import__('random').randint(1000, 9999)
+    def submit_api(ctx, n, email=None, phone=None):
+        return ctx.request.post(f'{BASE}/api/apply', headers=API_HEADERS, data={
+            **VALID_API, 'turnstileToken': DUMMY,
+            'email': email or f'delivered+rl{RUN}-{n}@resend.dev', 'phone': phone or f'08{RUN}{n:04d}'})
+    reset_limits(); mock('/__reset', {})
+    rl_ip = f'10.3.{RUN % 250}.{RUN % 7 + 1}'
+    ctx = browser.new_context(extra_http_headers={'x-real-ip': rl_ip})
+    codes = [submit_api(ctx, n).status for n in range(7)]
+    ok('per IP: 5 / 10 min, then 429', codes == [200] * 5 + [429, 429], str(codes))
+    r = submit_api(ctx, 99)
+    ok('429 message has the phone and no retry', r.status == 429 and '+359 888 807 152' in r.json()['message'] and not r.json().get('retry'), r.text())
+    keys = upstash_keys()
+    ok('rate-limit keys are hashed (no IP/email/phone)', keys and not any(x in k for k in keys for x in [rl_ip, 'resend.dev', f'08{RUN}', '+359']), str(keys[:3]))
+    ctx.close()
+    reset_limits()
+    codes = [submit_api(browser.new_context(extra_http_headers={'x-real-ip': f'10.4.{RUN % 250}.{n + 1}'}), 100 + n, email=f'delivered+same{RUN}@resend.dev').status for n in range(4)]
+    ok('per email: 3 / day, then 429', codes == [200, 200, 200, 429], str(codes))
+    reset_limits()
+    codes = [submit_api(browser.new_context(extra_http_headers={'x-real-ip': f'10.5.{RUN % 250}.{n + 1}'}), 200 + n, phone=f'08 9{RUN} 555').status for n in range(4)]
+    ok('per phone: 3 / day, then 429', codes == [200, 200, 200, 429], str(codes))
+    reset_limits()
+
+    # Global: above 200 leads/hour the lead still goes out, the confirmation does not
+    mock('/__reset', {})
+    gctx = browser.new_context()
+    for n in range(201):
+        gctx.request.post(f'{BASE}/api/apply', headers={**API_HEADERS, 'x-real-ip': f'11.{RUN % 250}.{n % 250}.{n // 250 + 1}'}, data={
+            **VALID_API, 'turnstileToken': DUMMY, 'email': f'delivered+g{RUN}-{n}@resend.dev', 'phone': f'07{RUN}{n:04d}'})
+    s_all = sent()
+    leads = sum(1 for e in s_all if e['kind'] == 'lead'); confs = sum(1 for e in s_all if e['kind'] == 'confirm')
+    ok('global 200/h: 201 leads delivered, 200 confirmations', leads == 201 and confs == 200, f'{leads} leads, {confs} confirmations')
+    gctx.close()
+    reset_limits()
+
+    browser.close()
+
+failed = [r for r in results if not r[1]]
+print(f'\n{len(results) - len(failed)}/{len(results)} passed')
