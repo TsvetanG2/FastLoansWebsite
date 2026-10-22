@@ -13,8 +13,14 @@ All visible site copy is in **Bulgarian**. Code, comments and commits in English
   4. "Защо да избереш Royal Finance?" — short text + checklist
   5. "Как да кандидатстваш?" — 3 steps: Попълни формата → Получете отговор до 10 минути → Вземи своя кредит
   6. Contact block — phone, hours, email
-  7. Footer — logo, nav, © year, links to Политика за поверителност and Общи условия
-- Legal pages: `/privacy` (Политика за поверителност), `/terms` (Общи условия) — placeholder text marked TODO, client supplies final copy.
+  7. Footer — logo, nav, row of legal links (Политика за поверителност · Общи условия · Решаване на спорове · Информация за кредитора), row with legal name, ЕИК, БНБ reg. №, © year
+- Legal pages (spec: `legal-pages.md`; all texts are a DRAFT for the client's lawyer; formal "Вие"; TOC at the top, "В сила от" at the bottom; shared layout `LegalPage.astro`):
+  - `/privacy` Политика за поверителност — must list every field the form actually collects
+  - `/about` За нас и информация за кредитора — two parts: agent, then lender (БНБ register link)
+  - `/disputes` Решаване на спорове — never link the EU ODR platform (closed after 19.07.2025)
+  - `/terms` Общи условия за ползване на сайта
+  - URLs and anchors are English (decided 2026-10-23): pages `/about`, `/privacy`, `/terms`, `/disputes`; anchors `#home`, `#about`, `#contact`, form `#apply`. The Bulgarian slugs from `legal-pages.md` (`/za-nas`, `/poveritelnost`, `/obshti-usloviya`, `/sporove`) 301-redirect to them. No accessibility statement page (micro-enterprise exemption); the site still meets WCAG 2.1 AA.
+- Company data: `src/data/company.ts` is the single source for legal pages, footer, contact block and emails (`src/config/site.ts` only adapts it for display). Never hardcode it. Missing values stay visible as `[TODO: …]` and are listed in `LEGAL_TODO.md` — never invent them (exception: `/about` shows no TODOs, by client decision).
 
 **Do NOT build:**
 - Loan calculator or any monthly-installment / interest / cost figure
@@ -29,7 +35,9 @@ If something is not listed under "Build", ask before adding it.
 
 - **Astro** (static output), TypeScript, plain CSS with custom properties (no UI framework)
 - One serverless function for form submission (`/api/apply`), adapter `@astrojs/vercel`
-- Hosting: Vercel (Pro), functions в fra1 (region set in `vercel.json`)
+- Hosting: Vercel **Hobby** (decided; not Pro — note Hobby is for non-commercial use), functions в fra1. `vercel.json` holds regions + security headers; `scripts/vercel-output.mjs` (run by `npm run build`) copies them into `.vercel/output`, because the adapter does not
+- Domain: https://royalfinance.bg (+ www)
+- **Security: `security.md` is the spec and wins over this file on security topics.** Dashboard steps are tracked in `SECURITY_TODO.md`.
 - Email: Resend (official `resend` SDK, server-side only)
 - Package manager: npm; Node 24 (Astro 7 needs Node ≥ 22.23.4)
 
@@ -51,12 +59,13 @@ Three steps, in this order (form copy uses formal "Вие"). The card takes the 
 | 2 | Какво работите | text | required, free text, 2–100 chars |
 | 3 Сума и срок | Желана сума | slider + number | 500–5 000 €, step 50 — TODO confirm range with client |
 | 3 | Срок | slider | 3–60 months, step 1 |
-| 3 | Съгласие | checkbox | required, unchecked by default, accepts /terms and /privacy |
+| 3 | Съгласие | checkbox | required, unchecked by default, links to /terms and /privacy |
 
 Requirements:
 - Validate client-side AND server-side (same schema, e.g. zod shared between both)
-- Cloudflare Turnstile on submit, verified server-side
-- Rate-limit the endpoint with `@vercel/firewall` (Firewall rule ID `apply`, condition "@vercel/firewall"); in-memory fallback until the rule exists; honeypot field as extra fallback
+- `/api/apply` checks, cheapest first (see `security.md`): method/content type/Origin → 403; body > 4 KB → 413; strict zod schema (unknown keys → 400, field errors → 422); honeypot `company_website` → fake 200; Turnstile (`action: "apply"`, allowed hostname, `remoteip`; test keys accepted only in dev) → 403; rate limits → 429; then emails
+- Rate limits: Upstash Redis (`@upstash/ratelimit`, eu-central-1) — per IP 5/10 min + 20/day, per email 3/day, per phone 3/day; global 200/hour → keep leads, skip confirmations. Keys are `sha256(value + RATE_LIMIT_SALT)`. Redis down → continue with a warning. Never in-memory counters (they do not work on serverless)
+- Allowed origins: royalfinance.bg + www (+ `ALLOWED_ORIGINS` env, + localhost:4321 in dev)
 - Do not collect ЕГН (TODO: pending client decision), ID card number or income. "Адрес по лична карта" was requested on 2026-10-22 — its legal basis must be in the Privacy Policy
 
 Submission flow (`/api/apply`, emails via Resend, never called from the browser):
@@ -68,9 +77,9 @@ Submission flow (`/api/apply`, emails via Resend, never called from the browser)
    - "Получихме кандидатурата ти. Наш консултант ще се свърже с теб скоро."
    - never repeat the amount, term or any other personal data
    - never say "одобрена" or "приета" — only "получена"
-   - if only this email fails → still show success; log only the Resend id and status
+   - if only this email fails → still show success
 - Templates: HTML + plain-text version, black-and-gold brand, table layout with inline styles (Gmail + Outlook), no remote images
-- No personal data in logs, ever
+- Logs: one JSON line per event with only a submission id, timestamp and outcome code. No names, emails, phones, IPs — ever
 - Test with Resend test addresses (`delivered@resend.dev`) before sending real emails
 - Clear states: idle, submitting, success ("Ще се свържем с Вас…"), error with retry
 - Fully keyboard-accessible, labels on every input, errors announced with `aria-live`
@@ -87,7 +96,13 @@ Submission flow (`/api/apply`, emails via Resend, never called from the browser)
 - **No other unverifiable claims.** Avoid "без такси", "без скрити разходи", "100% одобрение" unless the client confirms in writing. Mark such copy with `TODO-CLAIM`.
 - GDPR: no third-party trackers by default. If analytics are added, add a cookie consent banner first.
 - Resend е обработващ данни в САЩ — трябва да е посочен в Политиката за поверителност. TODO: клиентът подписва DPA с Resend.
-- Footer must show company legal name, ЕИК and БНБ registration number — TODO from client.
+- **Agent model.** „Глобъл Профинанс“ ЕООД (brand Royal Finance) is an *agent* of the lender „Тием Финанси“ ООД (`lender` in `company.ts`, БНБ № BGR00464). It does not lend in its own name.
+  - In practice Royal Finance is a separate office that runs everything with the customer, using Тием Финанси's system and licence (legally) under its own brand. The credit contract and the БНБ licence are Тием Финанси's, so the public disclosures below stay.
+  - Never write „отпускаме кредити“, „нашите кредити“, „ние одобряваме“. Use „Кредитите се отпускат от …“, „ще получите отговор“, „помагаме Ви да кандидатствате“.
+  - The site is the agent's: Royal Finance brand, design, contacts. Mention the lender only where required (under the form, footer, emails, `/about`, privacy recipients, `/disputes`). Never use the lender's logo or brand.
+  - `agentStatement` (company.ts) goes under the form, in the footer and in the email footer.
+  - **Customers contact only Royal Finance** for any question about the credit, the application or the contract — never direct them to the lender (its data is shown only as the legal disclosure). Lender contacts/website are hidden while missing; no visible TODO rows on `/about`.
+- Under the submit button: „Подаването на заявка не е договор за кредит. Договор се сключва след одобрение и предоставяне на преддоговорна информация.“
 
 ## Design
 
@@ -129,6 +144,7 @@ npm run dev       # local dev
 npm run build     # production build
 npm run preview   # preview build
 npm run check     # astro check + type check
+npm test          # unit tests (vitest): schema, request guards, Turnstile check, email safety
 ```
 
 ## Env vars
@@ -137,15 +153,22 @@ npm run check     # astro check + type check
 RESEND_API_KEY=        # server only
 EMAIL_FROM=            # verified sender, e.g. "Royal Finance <noreply@domain.bg>"
 LEADS_EMAIL_TO=        # where new applications go
-TURNSTILE_SITE_KEY=    # public, inlined at build time
+PUBLIC_TURNSTILE_SITE_KEY=  # the only browser-visible value, inlined at build time
 TURNSTILE_SECRET_KEY=
+UPSTASH_REDIS_REST_URL=     # rate limiting (or KV_REST_API_URL from the Vercel integration)
+UPSTASH_REDIS_REST_TOKEN=   # (or KV_REST_API_TOKEN)
+RATE_LIMIT_SALT=            # random secret for hashed rate-limit keys
+ALLOWED_ORIGINS=            # optional, extra origins for /api/apply (e.g. *.vercel.app before the domain is live)
 ```
 Production values live in Vercel → Settings → Environment Variables. Locally use `.env`.
 Never commit `.env`. Keep `.env.example` up to date.
 
 ## Testing
 
-- Form tests are Playwright (Python, `webapp-testing` skill). Run them against a local stand-in for the Resend API, never the real one: start a mock on `127.0.0.1:8790` and run the dev server with `RESEND_BASE_URL=http://127.0.0.1:8790` (the SDK honours it). Check the server log shows `mock-…` ids before trusting a run.
+- Unit tests: `npm test` (`tests/unit/`).
+- E2E tests are Playwright (Python, `webapp-testing` skill) in `tests/e2e/` — see README for the exact commands. Run them against local stand-ins, never real services: `tests/e2e/mock-resend.mjs` (8790) and `tests/e2e/mock-upstash.mjs` (8791), with the dev server started as `RESEND_BASE_URL=http://127.0.0.1:8790 UPSTASH_REDIS_REST_URL=http://127.0.0.1:8791 UPSTASH_REDIS_REST_TOKEN=test`. Check the server log shows `mock-…` ids before trusting a run.
+- The rate limiter caches blocked identifiers in server memory: e2e tests use per-run unique IPs/emails/phones.
+- CSP: `npm run build && node tests/e2e/serve-output.mjs` serves the build with production headers; `tests/e2e/test_csp.py` checks nothing is blocked (Turnstile, fonts, scripts). Keep scripts external (`vite.build.assetsInlineLimit: 0`) — no inline scripts.
 - Before starting a dev server, make sure nothing else listens on 4321 — a stale server with the real key will silently take the traffic.
 - Real Resend checks only with test addresses (`delivered@resend.dev`, `delivered+applicant@resend.dev`).
 
