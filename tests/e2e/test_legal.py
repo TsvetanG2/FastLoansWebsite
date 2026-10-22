@@ -32,6 +32,7 @@ with sync_playwright() as p:
             ok(f'[{label}] {path} TOC targets exist', hrefs and all(pg.locator(hh).count() == 1 for hh in hrefs), str(hrefs))
             ok(f'[{label}] {path} no horizontal scroll', pg.evaluate('document.documentElement.scrollWidth') <= w)
             ok(f'[{label}] {path} no ODR link', 'ec.europa.eu/odr' not in pg.content())
+            ok(f'[{label}] {path} no visible TODO', 'TODO' not in body)
             ok(f'[{label}] {path} formal Вие', ' ти ' not in body and ' твоя' not in body)
             width = pg.evaluate("parseFloat(getComputedStyle(document.querySelector('.prose p')).fontSize)")
             mw = pg.evaluate("document.querySelector('.prose').getBoundingClientRect().width")
@@ -55,7 +56,7 @@ with sync_playwright() as p:
         ok(f'[{label}] privacy KZLD + processors', all(x in t for x in ['бул. „Проф. Цветан Лазаров“ № 2', 'Resend', 'Vercel', 'Cloudflare', '1 месец']))
         ok(f'[{label}] privacy table', pg.locator('table tbody tr').count() == 3)
         pg.goto(BASE + '/disputes'); t = pg.text_content('main')
-        ok(f'[{label}] disputes: lender complaints address', 'до кредитора „Тием Финанси“ ООД' in t and 'гр. Перник 2300' in t)
+        ok(f'[{label}] disputes: complaints only to Royal Finance', 'се подават до Royal Finance' in t and 'Тием' not in t and 'Перник' not in t)
         ok(f'[{label}] disputes KZP + 30 days', 'ул. „Врабча“ № 1' in t and '30 дни' in t and 'Общата помирителна комисия' in t)
         pg.goto(BASE + '/terms'); t = pg.text_content('main')
         ok(f'[{label}] terms: agent of lender', 'действа като агент на „Тием Финанси“ ООД' in t)
@@ -77,6 +78,15 @@ with sync_playwright() as p:
         ok(f'[{label}] contact office address', 'ж.к. Младост 1, бл. 79' in ct and 'Отвори в карти' in ct)
         ok(f'[{label}] maps links (contact + footer)', pg.locator('a[data-maps-query]').count() == 2 and all('google.com/maps' in h for h in pg.eval_on_selector_all('a[data-maps-query]', 'as => as.map(a => a.href)')))
         ok(f'[{label}] header has phone but no working hours', '+359 888 807 152' in pg.text_content('header') and '10:00' not in pg.text_content('header'))
+        # Scroll-spy: the menu marks the section in view
+        pg.goto(BASE + '/'); pg.wait_for_load_state('networkidle')
+        spy = lambda: pg.evaluate("[...document.querySelectorAll('.nav-list a[aria-current]')].map(a => a.textContent).join(',')")
+        seen = []
+        for js in ['0', "document.getElementById('about').offsetTop", 'document.body.scrollHeight']:
+            pg.evaluate(f"scrollTo({{top: {js}, behavior: 'instant'}})"); pg.wait_for_timeout(200); seen.append(spy())
+        ok(f'[{label}] menu marks Начало → За нас → Контакти while scrolling', seen == ['Начало', 'За нас', 'Контакти'], str(seen))
+        pg.goto(BASE + '/privacy'); pg.wait_for_load_state('networkidle')
+        ok(f'[{label}] no menu item marked on other pages', spy() == '')
         # Menu: smooth scroll to the section, address bar stays clean (no "#")
         def open_menu():
             if pg.locator('.nav-toggle').is_visible(): pg.click('.nav-toggle')

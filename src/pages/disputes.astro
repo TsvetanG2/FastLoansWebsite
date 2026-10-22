@@ -1,7 +1,7 @@
 ---
 import Base from '../layouts/Base.astro';
 import LegalPage from '../components/LegalPage.astro';
-import { company, lender } from '../data/company';
+import { company } from '../data/company';
 
 // DRAFT: must be reviewed by the client's lawyer before launch (see LEGAL_TODO.md).
 // Do NOT link the EU ODR platform: it was closed after 19.07.2025.
@@ -18,22 +18,14 @@ const toc = [
 >
   <LegalPage title="Решаване на спорове" toc={toc}>
     <h2 id="zhalba">1. Как да подадете жалба</h2>
-    <p>Можете да подадете жалба по един от следните начини:</p>
+    <p>
+      Всички жалби, включително свързаните с договора за кредит, се подават до {company.brandName}
+      ({company.legalName}) по един от следните начини:
+    </p>
     <ul>
       <li>писмено, на адрес: {company.correspondenceAddress};</li>
       <li>по имейл: <a href={`mailto:${company.complaintsEmail}`}>{company.complaintsEmail}</a>;</li>
       <li>по телефон: <a href={company.phoneHref}>{company.phone}</a> ({company.workingHours}).</li>
-    </ul>
-
-    <h3>Жалби, свързани с договора за кредит</h3>
-    <p>
-      Жалби, свързани с договора за кредит, можете да подадете и до кредитора {lender.legalName}:
-    </p>
-    <ul>
-      {lender.complaintsEmail && (
-        <li>по имейл: <a href={`mailto:${lender.complaintsEmail}`}>{lender.complaintsEmail}</a>;</li>
-      )}
-      <li>писмено, на адрес: {lender.registeredAddress}.</li>
     </ul>
 
     <h2 id="srok">2. Срок за отговор</h2>

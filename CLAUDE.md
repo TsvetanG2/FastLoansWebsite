@@ -20,7 +20,7 @@ All visible site copy is in **Bulgarian**. Code, comments and commits in English
   - `/disputes` Решаване на спорове — never link the EU ODR platform (closed after 19.07.2025)
   - `/terms` Общи условия за ползване на сайта
   - URLs and anchors are English (decided 2026-10-23): pages `/about`, `/privacy`, `/terms`, `/disputes`; anchors `#home`, `#about`, `#contact`, form `#apply`. The Bulgarian slugs from `legal-pages.md` (`/za-nas`, `/poveritelnost`, `/obshti-usloviya`, `/sporove`) 301-redirect to them. No accessibility statement page (micro-enterprise exemption); the site still meets WCAG 2.1 AA.
-- Company data: `src/data/company.ts` is the single source for legal pages, footer, contact block and emails (`src/config/site.ts` only adapts it for display). Never hardcode it. Missing values stay visible as `[TODO: …]` and are listed in `LEGAL_TODO.md` — never invent them (exception: `/about` shows no TODOs, by client decision).
+- Company data: `src/data/company.ts` is the single source for legal pages, footer, contact block and emails (`src/config/site.ts` only adapts it for display). Never hardcode it. **Never show `[TODO …]` on the site** (client decision 2026-10-23): leave missing parts out or hide the row, and list them in `LEGAL_TODO.md` — never invent data. Complaints and questions go only to Royal Finance („Глобъл Профинанс“ ЕООД), never to the lender.
 
 **Do NOT build:**
 - Loan calculator or any monthly-installment / interest / cost figure
@@ -94,7 +94,7 @@ Submission flow (`/api/apply`, emails via Resend, never called from the browser)
   - "Срок от 3 до 60 месеца"
   Never turn them into "гарантирано", "мигновено" or "100% одобрение".
 - **No other unverifiable claims.** Avoid "без такси", "без скрити разходи", "100% одобрение" unless the client confirms in writing. Mark such copy with `TODO-CLAIM`.
-- GDPR: no third-party trackers by default. If analytics are added, add a cookie consent banner first.
+- GDPR: **Vercel Web Analytics** is enabled (cookieless, no IP stored, daily-rotating hash; named in `/privacy`) — no consent banner needed for it (decided 2026-10-23; lawyer to confirm, see `LEGAL_TODO.md`). Any tool that sets cookies, uses advertising or tracks across sites requires a consent banner first.
 - Resend е обработващ данни в САЩ — трябва да е посочен в Политиката за поверителност. TODO: клиентът подписва DPA с Resend.
 - **Agent model.** „Глобъл Профинанс“ ЕООД (brand Royal Finance) is an *agent* of the lender „Тием Финанси“ ООД (`lender` in `company.ts`, БНБ № BGR00464). It does not lend in its own name.
   - In practice Royal Finance is a separate office that runs everything with the customer, using Тием Финанси's system and licence (legally) under its own brand. The credit contract and the БНБ licence are Тием Финанси's, so the public disclosures below stay.
