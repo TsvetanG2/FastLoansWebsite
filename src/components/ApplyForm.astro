@@ -1,15 +1,134 @@
 ---
-import { ArrowLeft, ArrowRight, CircleCheck, Lock, RotateCcw } from '@lucide/astro';
-import { AMOUNT, TERM, formatEur, formatMonths } from '../lib/application';
+import { ArrowLeft, ArrowRight, ChevronDown, CircleCheck, Lock, RotateCcw } from '@lucide/astro';
+import { AMOUNT, HOUSING, PURPOSES, TERM, formatEur, formatMonths } from '../lib/application';
+import { CITIES } from '../lib/cities';
 
 const pct = (v: number, min: number, max: number) => `${((v - min) / (max - min)) * 100}%`;
+const STEP_TITLES = ['Лични данни', 'Адрес и работа', 'Сума и срок'];
 ---
 <div class="apply" id="kandidatstvai">
   <form class="apply-form" id="apply-form" novalidate data-step="1">
-    <h2 class="apply-title">Кандидатствай за кредит</h2>
+    <h2 class="apply-title">Кандидатствайте за кредит</h2>
 
-    <fieldset class="step step-1">
-      <legend class="visually-hidden">Стъпка 1 от 2: сума и срок</legend>
+    <div class="progress" aria-hidden="true">
+      <p class="progress-label">
+        Стъпка <span data-step-num>1</span> от 3: <span data-step-title>{STEP_TITLES[0]}</span>
+      </p>
+      <ol class="progress-bar">
+        {STEP_TITLES.map(() => <li></li>)}
+      </ol>
+    </div>
+
+    <div class="steps">
+    <!-- Step 1: personal details -->
+    <fieldset class="step" data-step-index="1">
+      <legend class="visually-hidden">Стъпка 1 от 3: {STEP_TITLES[0]}</legend>
+
+      <div class="row">
+        <div class="field">
+          <label for="firstName">Вашето име</label>
+          <input id="firstName" name="firstName" type="text" autocomplete="given-name" maxlength="40" required aria-describedby="firstName-error" />
+          <p class="error" id="firstName-error" data-error-for="firstName"></p>
+        </div>
+        <div class="field">
+          <label for="lastName">Вашата фамилия</label>
+          <input id="lastName" name="lastName" type="text" autocomplete="family-name" maxlength="40" required aria-describedby="lastName-error" />
+          <p class="error" id="lastName-error" data-error-for="lastName"></p>
+        </div>
+      </div>
+
+      <div class="field">
+        <label for="phone">Телефон за връзка</label>
+        <div class="phone">
+          <span class="phone-prefix" aria-hidden="true">+359</span>
+          <input id="phone" name="phone" type="tel" autocomplete="tel-national" inputmode="tel" placeholder="888 123 456" maxlength="20" required aria-describedby="phone-prefix-hint phone-error" />
+        </div>
+        <span class="visually-hidden" id="phone-prefix-hint">Код +359 е добавен автоматично.</span>
+        <p class="error" id="phone-error" data-error-for="phone"></p>
+      </div>
+
+      <div class="field">
+        <label for="email">Имейл</label>
+        <input id="email" name="email" type="email" autocomplete="email" maxlength="254" required aria-describedby="email-error" />
+        <p class="error" id="email-error" data-error-for="email"></p>
+      </div>
+
+      <div class="nav">
+        <button class="btn btn-gold" type="button" data-action="next">
+          Продължете <ArrowRight aria-hidden="true" />
+        </button>
+      </div>
+    </fieldset>
+
+    <!-- Step 2: purpose, address, housing, work -->
+    <fieldset class="step" data-step-index="2" disabled>
+      <legend class="visually-hidden">Стъпка 2 от 3: {STEP_TITLES[1]}</legend>
+
+      <div class="field">
+        <label for="purpose">Причина за финансиране</label>
+        <div class="select">
+          <select id="purpose" name="purpose" required aria-describedby="purpose-error">
+            <option value="" selected disabled>Изберете</option>
+            {Object.entries(PURPOSES).map(([v, label]) => <option value={v}>{label}</option>)}
+          </select>
+          <ChevronDown aria-hidden="true" />
+        </div>
+        <p class="error" id="purpose-error" data-error-for="purpose"></p>
+      </div>
+
+      <div class="field">
+        <label for="currentAddress">Настоящ адрес</label>
+        <input id="currentAddress" name="currentAddress" type="text" autocomplete="street-address" maxlength="200" placeholder="ул., №, бл., вх., ап." required aria-describedby="currentAddress-error" />
+        <p class="error" id="currentAddress-error" data-error-for="currentAddress"></p>
+      </div>
+
+      <div class="field">
+        <label for="idAddress">Адрес по лична карта</label>
+        <input id="idAddress" name="idAddress" type="text" autocomplete="off" maxlength="200" required aria-describedby="idAddress-error" />
+        <p class="error" id="idAddress-error" data-error-for="idAddress"></p>
+      </div>
+
+      <div class="field">
+        <label for="city">Град</label>
+        <div class="select">
+          <select id="city" name="city" autocomplete="address-level2" required aria-describedby="city-error">
+            <option value="" selected disabled>Изберете град</option>
+            {CITIES.map((c) => <option value={c}>{c}</option>)}
+          </select>
+          <ChevronDown aria-hidden="true" />
+        </div>
+        <p class="error" id="city-error" data-error-for="city"></p>
+      </div>
+
+      <div class="field">
+        <label for="housing">В собствено жилище ли живеете?</label>
+        <div class="select">
+          <select id="housing" name="housing" required aria-describedby="housing-error">
+            <option value="" selected disabled>Изберете</option>
+            {Object.entries(HOUSING).map(([v, label]) => <option value={v}>{label}</option>)}
+          </select>
+          <ChevronDown aria-hidden="true" />
+        </div>
+        <p class="error" id="housing-error" data-error-for="housing"></p>
+      </div>
+
+      <div class="field">
+        <label for="occupation">Какво работите</label>
+        <input id="occupation" name="occupation" type="text" autocomplete="organization-title" maxlength="100" required aria-describedby="occupation-error" />
+        <p class="error" id="occupation-error" data-error-for="occupation"></p>
+      </div>
+
+      <div class="nav">
+        <button type="button" class="link-btn" data-action="back"><ArrowLeft aria-hidden="true" /> Назад</button>
+        <button class="btn btn-gold" type="button" data-action="next">
+          Продължете <ArrowRight aria-hidden="true" />
+        </button>
+      </div>
+    </fieldset>
+
+    <!-- Step 3: amount, term, city, consent -->
+    <fieldset class="step" data-step-index="3" disabled>
+      <legend class="visually-hidden">Стъпка 3 от 3: {STEP_TITLES[2]}</legend>
 
       <div class="field">
         <div class="field-head">
@@ -71,44 +190,13 @@ const pct = (v: number, min: number, max: number) => `${((v - min) / (max - min)
         <p class="error" id="term-error" data-error-for="term"></p>
       </div>
 
-      <button class="btn btn-gold btn-block" type="button" data-action="next">
-        Продължи <ArrowRight aria-hidden="true" />
-      </button>
-    </fieldset>
-
-    <fieldset class="step step-2" disabled>
-      <legend class="visually-hidden">Стъпка 2 от 2: данни за контакт</legend>
-
-      <p class="summary">
-        <span id="summary-text"></span>
-        <button type="button" class="link-btn" data-action="back">
-          <ArrowLeft aria-hidden="true" /> Промени
-        </button>
-      </p>
-
-      <div class="field">
-        <label for="name">Име и фамилия</label>
-        <input id="name" name="name" type="text" autocomplete="name" maxlength="80" required aria-describedby="name-error" />
-        <p class="error" id="name-error" data-error-for="name"></p>
-      </div>
-
-      <div class="field">
-        <label for="phone">Телефон</label>
-        <input id="phone" name="phone" type="tel" autocomplete="tel" inputmode="tel" placeholder="0888 123 456" required aria-describedby="phone-error" />
-        <p class="error" id="phone-error" data-error-for="phone"></p>
-      </div>
-
-      <div class="field">
-        <label for="email">Имейл</label>
-        <input id="email" name="email" type="email" autocomplete="email" maxlength="254" required aria-describedby="email-error" />
-        <p class="error" id="email-error" data-error-for="email"></p>
-      </div>
-
       <div class="field field-check">
         <input id="consent" name="consent" type="checkbox" required aria-describedby="consent-error" />
         <label for="consent">
-          Съгласен/на съм личните ми данни да бъдат обработени за целите на заявката според{" "}
-          <a href="/privacy" target="_blank" rel="noopener">Политиката за поверителност</a>.
+          Приемам{" "}
+          <a href="/terms" target="_blank" rel="noopener">Общите условия</a> и{" "}
+          <a href="/privacy" target="_blank" rel="noopener">Политиката за поверителност</a>{" "}
+          и съм съгласен/на личните ми данни да бъдат обработени за целите на заявката.
         </label>
         <p class="error" id="consent-error" data-error-for="consent"></p>
       </div>
@@ -121,33 +209,37 @@ const pct = (v: number, min: number, max: number) => `${((v - min) / (max - min)
 
       <div class="turnstile" id="turnstile"></div>
 
-      <button class="btn btn-gold btn-block" type="submit" data-submit>
-        <span data-label>Изпрати заявката</span> <ArrowRight aria-hidden="true" />
-      </button>
+      <div class="nav">
+        <button type="button" class="link-btn" data-action="back"><ArrowLeft aria-hidden="true" /> Назад</button>
+        <button class="btn btn-gold" type="submit" data-submit>
+          <span data-label>Изпратете заявката</span> <ArrowRight aria-hidden="true" />
+        </button>
+      </div>
     </fieldset>
+    </div>
 
     <div class="form-alert" id="form-alert" role="alert" hidden>
       <p id="form-alert-text"></p>
       <button type="button" class="btn btn-outline" data-action="retry" hidden>
-        <RotateCcw aria-hidden="true" /> Опитай отново
+        <RotateCcw aria-hidden="true" /> Опитайте отново
       </button>
     </div>
 
-    <p class="secure"><Lock aria-hidden="true" /> Данните ти се изпращат по защитена връзка</p>
+    <p class="secure"><Lock aria-hidden="true" /> Данните Ви се изпращат по защитена връзка</p>
     <p class="visually-hidden" id="form-status" aria-live="polite"></p>
-    <noscript><p class="error">За да кандидатстваш, включи JavaScript в браузъра си.</p></noscript>
+    <noscript><p class="error">За да кандидатствате, включете JavaScript в браузъра си.</p></noscript>
   </form>
 
   <div class="apply-success" id="apply-success" tabindex="-1" hidden>
     <CircleCheck aria-hidden="true" />
     <h2>Заявката е изпратена</h2>
-    <p>Получихме кандидатурата ти. Ще се свържем с теб на посочения телефон.</p>
+    <p>Получихме кандидатурата Ви. Ще се свържем с Вас на посочения телефон.</p>
   </div>
 </div>
 
 <script>
   import { TURNSTILE_SITE_KEY } from 'astro:env/client';
-  import { AMOUNT, formatEur, formatMonths, validate, type Field, type FieldErrors } from '../lib/application';
+  import { AMOUNT, FIELDS, STEPS, formatEur, formatMonths, validate, type Field, type FieldErrors } from '../lib/application';
 
   type Turnstile = {
     render: (el: HTMLElement, opts: Record<string, unknown>) => string;
@@ -157,15 +249,19 @@ const pct = (v: number, min: number, max: number) => `${((v - min) / (max - min)
     interface Window { turnstile?: Turnstile; }
   }
 
+  const STEP_TITLES = ['Лични данни', 'Адрес и работа', 'Сума и срок'];
+  const LAST = STEPS.length;
+
   const form = document.getElementById('apply-form') as HTMLFormElement;
   const success = document.getElementById('apply-success') as HTMLElement;
-  const step1 = form.querySelector<HTMLFieldSetElement>('.step-1')!;
-  const step2 = form.querySelector<HTMLFieldSetElement>('.step-2')!;
+  const steps = [...form.querySelectorAll<HTMLFieldSetElement>('.step')];
+  const stepNum = form.querySelector('[data-step-num]')!;
+  const stepTitle = form.querySelector('[data-step-title]')!;
+  const bars = [...form.querySelectorAll<HTMLLIElement>('.progress-bar li')];
   const amount = form.elements.namedItem('amount') as HTMLInputElement;
   const amountRange = document.getElementById('amount-range') as HTMLInputElement;
   const term = form.elements.namedItem('term') as HTMLInputElement;
   const termOutput = document.getElementById('term-output') as HTMLOutputElement;
-  const summary = document.getElementById('summary-text')!;
   const alertBox = document.getElementById('form-alert')!;
   const alertText = document.getElementById('form-alert-text')!;
   const retryBtn = alertBox.querySelector<HTMLButtonElement>('[data-action="retry"]')!;
@@ -173,9 +269,8 @@ const pct = (v: number, min: number, max: number) => `${((v - min) / (max - min)
   const submitLabel = submitBtn.querySelector('[data-label]')!;
   const status = document.getElementById('form-status')!;
 
-  const STEP1_FIELDS: Field[] = ['amount', 'term'];
-  const ALL_FIELDS: Field[] = ['amount', 'term', 'name', 'phone', 'email', 'consent'];
-  let showErrorsLive = false;
+  const input = (f: Field) => form.elements.namedItem(f) as HTMLInputElement | HTMLSelectElement;
+  const current = () => Number(form.dataset.step);
 
   // --- Sliders -------------------------------------------------------------
   const setFill = (r: HTMLInputElement) => {
@@ -217,26 +312,24 @@ const pct = (v: number, min: number, max: number) => `${((v - min) / (max - min)
   });
 
   // --- Validation ----------------------------------------------------------
-  const values = () => ({
-    amount: amount.value,
-    term: term.value,
-    name: (form.elements.namedItem('name') as HTMLInputElement).value,
-    phone: (form.elements.namedItem('phone') as HTMLInputElement).value,
-    email: (form.elements.namedItem('email') as HTMLInputElement).value,
-    consent: (form.elements.namedItem('consent') as HTMLInputElement).checked,
-  });
+  const values = () =>
+    Object.fromEntries(
+      FIELDS.map((f) => {
+        const el = input(f);
+        return [f, el instanceof HTMLInputElement && el.type === 'checkbox' ? el.checked : el.value];
+      }),
+    );
 
   function setError(field: Field, message = '') {
     const el = form.querySelector<HTMLElement>(`[data-error-for="${field}"]`);
-    const input = form.elements.namedItem(field) as HTMLInputElement | null;
     if (el) el.textContent = message;
-    input?.setAttribute('aria-invalid', message ? 'true' : 'false');
+    input(field)?.setAttribute('aria-invalid', message ? 'true' : 'false');
   }
 
   function showErrors(errors: FieldErrors, fields: Field[]) {
     for (const f of fields) setError(f, errors[f] ?? '');
     const first = fields.find((f) => errors[f]);
-    if (first) (form.elements.namedItem(first) as HTMLInputElement).focus();
+    if (first) input(first).focus();
     return !first;
   }
 
@@ -245,40 +338,139 @@ const pct = (v: number, min: number, max: number) => `${((v - min) / (max - min)
     return showErrors(r.ok ? {} : r.errors, fields);
   }
 
-  // After the first submit, clear an error as soon as the field becomes valid.
-  // New errors only appear on submit: showing them on blur shifts the layout
-  // under the pointer and swallows the click on the next field.
-  for (const f of ['name', 'phone', 'email', 'consent'] as Field[]) {
-    const el = form.elements.namedItem(f) as HTMLInputElement;
-    el.addEventListener(f === 'consent' ? 'change' : 'input', () => {
-      if (!showErrorsLive || el.getAttribute('aria-invalid') !== 'true') return;
+  // Once a field shows an error, clear it as soon as the value becomes valid.
+  // New errors only appear on "Продължете"/submit: showing them on blur shifts
+  // the layout under the pointer and swallows the click on the next field.
+  for (const f of FIELDS) {
+    if (f === 'amount' || f === 'term') continue;
+    const el = input(f);
+    const type = el instanceof HTMLSelectElement || (el as HTMLInputElement).type === 'checkbox' ? 'change' : 'input';
+    el.addEventListener(type, () => {
+      if (el.getAttribute('aria-invalid') !== 'true') return;
       const r = validate(values());
       if (r.ok || !r.errors[f]) setError(f);
     });
   }
 
   // --- Steps ---------------------------------------------------------------
-  function goTo(step: 1 | 2) {
-    form.dataset.step = String(step);
-    step1.disabled = step !== 1;
-    step2.disabled = step !== 2;
-    hideAlert();
-    if (step === 2) {
-      summary.textContent = `${formatEur(Number(amount.value))} за ${formatMonths(Number(term.value))}`;
-      loadTurnstile();
-      (form.elements.namedItem('name') as HTMLInputElement).focus();
-      status.textContent = 'Стъпка 2 от 2: данни за контакт';
-    } else {
-      amountRange.focus();
-      status.textContent = 'Стъпка 1 от 2: сума и срок';
-    }
+  const stepsWrap = form.querySelector<HTMLElement>('.steps')!;
+  const reducedMotion = () => matchMedia('(prefers-reduced-motion: reduce)').matches;
+  const EASE = 'cubic-bezier(0.2, 0.7, 0.2, 1)';
+  let animating: Promise<void> | null = null;
+  let maxReached = 1;
+
+  // Old step fades (and slides) out, the box eases to the new step's height
+  // while the new step fades (and slides) in. With reduced motion: fade and
+  // height only, no sideways movement.
+  async function swapSteps(from: HTMLFieldSetElement, to: HTMLFieldSetElement, dir: number, show: () => void) {
+    if (from === to || !('animate' in stepsWrap)) return show();
+    const slide = reducedMotion() ? 0 : 28;
+    const h0 = stepsWrap.offsetHeight;
+    await from.animate(
+      [{ opacity: 1, transform: 'none' }, { opacity: 0, transform: `translateX(${-dir * slide}px)` }],
+      { duration: 160, easing: 'ease-in' },
+    ).finished;
+    show();
+    const h1 = stepsWrap.offsetHeight;
+    stepsWrap.style.overflow = 'hidden';
+    const grow = stepsWrap.animate([{ height: `${h0}px` }, { height: `${h1}px` }], { duration: 360, easing: EASE });
+    const enter = to.animate(
+      [{ opacity: 0, transform: `translateX(${dir * slide}px)` }, { opacity: 1, transform: 'none' }],
+      { duration: 360, easing: EASE },
+    );
+    await Promise.all([grow.finished, enter.finished]);
+    stepsWrap.style.overflow = '';
   }
 
-  form.querySelector('[data-action="next"]')!.addEventListener('click', () => {
-    amount.dispatchEvent(new Event('change'));
-    if (check(STEP1_FIELDS)) goTo(2);
-  });
-  form.querySelector('[data-action="back"]')!.addEventListener('click', () => goTo(1));
+  // Scroll along with the card as it changes size. Called right after the new
+  // step is shown, when layout already has the final size but the height
+  // animation has not started, so both move together with the same curve.
+  // Desktop: centre the card in the space below the sticky header (or pin its
+  // top under the header when it is taller than that). Mobile: bring the step
+  // label just below the header when it is out of view.
+  const isDesktop = matchMedia('(min-width: 1024px)');
+  function followCard() {
+    const header = document.querySelector('header')?.getBoundingClientRect().height ?? 0;
+    const card = form.parentElement!.getBoundingClientRect();
+    let delta: number;
+    if (isDesktop.matches) {
+      const room = innerHeight - header;
+      delta = card.height + 32 > room
+        ? card.top - header - 16
+        : card.top + card.height / 2 - (header + room / 2);
+    } else {
+      const label = form.querySelector('.progress')!.getBoundingClientRect().top;
+      if (label >= header && label <= innerHeight / 2) return;
+      delta = label - header - 16;
+    }
+    const max = document.documentElement.scrollHeight - innerHeight;
+    scrollToY(Math.max(0, Math.min(max, scrollY + delta)), 360);
+  }
+
+  // rAF-driven so it matches the card animation exactly (and is not affected by
+  // the CSS `scroll-behavior: smooth`, which would fight per-frame scrolling).
+  function scrollToY(y: number, duration: number) {
+    const y0 = scrollY;
+    const d = y - y0;
+    if (Math.abs(d) < 2) return;
+    const t0 = performance.now();
+    const ease = (t: number) => 1 - Math.pow(1 - t, 3);
+    const frame = (now: number) => {
+      const t = Math.min(1, (now - t0) / duration);
+      scrollTo({ top: y0 + d * ease(t), behavior: 'instant' });
+      if (t < 1) requestAnimationFrame(frame);
+    };
+    requestAnimationFrame(frame);
+  }
+
+  // Each step's bar fills with the share of its fields that are valid.
+  // Amount and term start with valid values, so they count once the step is reached.
+  function updateProgress() {
+    const r = validate(values());
+    const errors: FieldErrors = r.ok ? {} : r.errors;
+    bars.forEach((bar, i) => {
+      const fields = STEPS[i].filter((f) => (f !== 'amount' && f !== 'term') || maxReached > i);
+      const done = fields.filter((f) => !errors[f]).length;
+      bar.style.setProperty('--p', String(done / STEPS[i].length));
+    });
+  }
+  form.addEventListener('input', updateProgress);
+  form.addEventListener('change', updateProgress);
+
+  function goTo(step: number, focus = true) {
+    if (animating) return animating;
+    const from = steps[current() - 1];
+    const to = steps[step - 1];
+    const dir = step > current() ? 1 : -1;
+    form.dataset.step = String(step);
+    maxReached = Math.max(maxReached, step);
+    updateProgress();
+    stepNum.textContent = String(step);
+    stepTitle.textContent = STEP_TITLES[step - 1];
+    hideAlert();
+    // Warm up Turnstile early so the token is ready by the last step
+    if (step >= 2) loadTurnstile();
+    status.textContent = `Стъпка ${step} от ${LAST}: ${STEP_TITLES[step - 1]}`;
+
+    animating = swapSteps(from, to, dir, () => {
+      steps.forEach((s, i) => (s.disabled = i + 1 !== step));
+      followCard();
+      if (focus) {
+        to.querySelector<HTMLElement>('input:not([type=hidden]):not([tabindex="-1"]), select')?.focus({ preventScroll: true });
+      }
+    }).finally(() => (animating = null));
+    return animating;
+  }
+
+  function next() {
+    if (animating) return;
+    if (current() === LAST) amount.dispatchEvent(new Event('change'));
+    if (check(STEPS[current() - 1])) goTo(current() + 1);
+  }
+
+  form.querySelectorAll('[data-action="next"]').forEach((b) => b.addEventListener('click', next));
+  form.querySelectorAll('[data-action="back"]').forEach((b) => b.addEventListener('click', () => goTo(current() - 1)));
+  updateProgress();
 
   // --- Turnstile -----------------------------------------------------------
   let widgetId: string | undefined;
@@ -337,21 +529,28 @@ const pct = (v: number, min: number, max: number) => `${((v - min) / (max - min)
 
   function setSubmitting(on: boolean) {
     submitBtn.disabled = on;
-    submitLabel.textContent = on ? 'Изпращане…' : 'Изпрати заявката';
+    submitLabel.textContent = on ? 'Изпращане…' : 'Изпратете заявката';
     form.setAttribute('aria-busy', String(on));
     status.textContent = on ? 'Изпращаме заявката…' : '';
   }
 
   async function submit() {
     hideAlert();
-    showErrorsLive = true;
-    if (!check(ALL_FIELDS)) return;
+    amount.dispatchEvent(new Event('change'));
+    // Re-check every step; jump back to the first one with a problem
+    const r = validate(values());
+    if (!r.ok) {
+      const bad = STEPS.findIndex((fields) => fields.some((f) => r.errors[f]));
+      if (bad + 1 !== current()) await goTo(bad + 1, false);
+      showErrors(r.errors, STEPS[bad]);
+      return;
+    }
 
     setSubmitting(true);
     try {
       const turnstileToken = await getToken();
       if (!turnstileToken) {
-        showAlert('Проверката, че не си робот, не завърши. Опитай отново.', true);
+        showAlert('Проверката, че не сте робот, не завърши. Опитайте отново.', true);
         resetTurnstile();
         return;
       }
@@ -367,21 +566,34 @@ const pct = (v: number, min: number, max: number) => `${((v - min) / (max - min)
       const data = await res.json().catch(() => ({}));
 
       if (res.ok && data.ok) {
+        const card = form.parentElement!;
+        const h0 = card.offsetHeight;
         form.hidden = true;
         success.hidden = false;
-        success.focus();
+        success.focus({ preventScroll: true });
+        followCard();
+        if ('animate' in card) {
+          const h1 = card.offsetHeight;
+          card.style.overflow = 'hidden';
+          success.animate([{ opacity: 0 }, { opacity: 1 }], { duration: 400, easing: 'ease-out' });
+          card.animate([{ height: `${h0}px` }, { height: `${h1}px` }], { duration: 420, easing: EASE })
+            .finished.then(() => (card.style.overflow = ''));
+        }
         return;
       }
       if (res.status === 422 && data.errors) {
-        showErrors(data.errors, ALL_FIELDS);
-        if (data.errors.amount || data.errors.term) goTo(1);
+        const bad = STEPS.findIndex((fields) => fields.some((f) => data.errors[f]));
+        if (bad >= 0) {
+          await goTo(bad + 1, false);
+          showErrors(data.errors, STEPS[bad]);
+        }
         resetTurnstile();
         return;
       }
-      showAlert(data.message ?? 'Заявката не беше изпратена заради технически проблем. Опитай отново.', true);
+      showAlert(data.message ?? 'Заявката не беше изпратена заради технически проблем. Опитайте отново.', true);
       resetTurnstile();
     } catch {
-      showAlert('Няма връзка със сървъра. Провери интернет връзката си и опитай отново.', true);
+      showAlert('Няма връзка със сървъра. Проверете интернет връзката си и опитайте отново.', true);
       resetTurnstile();
     } finally {
       setSubmitting(false);
@@ -390,11 +602,8 @@ const pct = (v: number, min: number, max: number) => `${((v - min) / (max - min)
 
   form.addEventListener('submit', (e) => {
     e.preventDefault();
-    if (form.dataset.step === '1') {
-      form.querySelector<HTMLButtonElement>('[data-action="next"]')!.click();
-      return;
-    }
-    submit();
+    if (current() < LAST) next();
+    else submit();
   });
   retryBtn.addEventListener('click', () => submit());
 </script>
@@ -406,7 +615,9 @@ const pct = (v: number, min: number, max: number) => `${((v - min) / (max - min)
     border-radius: var(--radius);
     padding: 1.5rem 1.25rem;
     box-shadow: 0 30px 60px -30px rgba(0, 0, 0, 0.9), inset 0 1px 0 rgba(232, 201, 122, 0.12);
+    scroll-margin-top: 5.5rem;
   }
+  .apply-form { scroll-margin-top: 5.5rem; }
   @media (min-width: 640px) {
     .apply { padding: 2rem; }
   }
@@ -414,14 +625,52 @@ const pct = (v: number, min: number, max: number) => `${((v - min) / (max - min)
   .apply-title {
     font-size: 1.4rem;
     color: var(--gold-2);
-    margin-bottom: 1.5rem;
+    margin-bottom: 1rem;
   }
 
-  .step { border: 0; padding: 0; margin: 0; min-width: 0; }
-  .step:disabled { display: none; }
-  .step > * + * { margin-top: 1.25rem; }
+  .progress { margin-bottom: 1.5rem; }
+  .progress-label { font-size: 0.85rem; color: var(--text-muted); }
+  .progress-bar {
+    list-style: none;
+    margin: 0.5rem 0 0;
+    padding: 0;
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 0.35rem;
+  }
+  .progress-bar li { position: relative; height: 3px; border-radius: 999px; background: #2b2721; overflow: hidden; }
+  .progress-bar li::after {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background: var(--gold-gradient);
+    transform: scaleX(var(--p, 0));
+    transform-origin: left;
+    transition: transform 0.45s cubic-bezier(0.2, 0.7, 0.2, 1);
+  }
+  /* The fill only grows along a 3px line, so it stays on with reduced motion */
+  @media (prefers-reduced-motion: reduce) {
+    .progress-bar li::after { transition: transform 0.3s ease !important; }
+  }
 
-  .field { display: grid; gap: 0.4rem; }
+  /* Step changes (height, fade, slide) are animated from the script */
+  .step {
+    display: flex;
+    flex-direction: column;
+    gap: 1.1rem;
+    min-width: 0;
+    margin: 0;
+    padding: 0;
+    border: 0;
+  }
+  .step:disabled { display: none; }
+
+  .row { display: grid; gap: 1.1rem; }
+  @media (min-width: 480px) {
+    .row { grid-template-columns: 1fr 1fr; gap: 0.75rem; }
+  }
+
+  .field { display: grid; gap: 0.4rem; align-content: start; }
   .field label { font-weight: 600; font-size: 0.95rem; }
   .field-head {
     display: flex;
@@ -430,7 +679,7 @@ const pct = (v: number, min: number, max: number) => `${((v - min) / (max - min)
     gap: 1rem;
   }
 
-  /* The chosen amount is the focal point of the card */
+  /* The chosen amount is the focal point of the last step */
   .amount-box {
     display: flex;
     align-items: baseline;
@@ -515,8 +764,9 @@ const pct = (v: number, min: number, max: number) => `${((v - min) / (max - min)
   }
 
   .field input[type='text'],
-  .field input[type='tel'],
-  .field input[type='email'] {
+  .field input[type='email'],
+  .phone,
+  .select select {
     width: 100%;
     min-height: 3rem;
     padding: 0.7rem 0.9rem;
@@ -527,8 +777,47 @@ const pct = (v: number, min: number, max: number) => `${((v - min) / (max - min)
     font: inherit;
   }
   .field input::placeholder { color: #6f6a62; }
-  .field input:focus-visible { border-color: var(--gold-1); outline-offset: 1px; }
-  .field input[aria-invalid='true'] { border-color: var(--error); }
+  .field input:focus-visible,
+  .select select:focus-visible { border-color: var(--gold-1); outline-offset: 1px; }
+  .field input[aria-invalid='true'],
+  .select select[aria-invalid='true'] { border-color: var(--error); }
+
+  /* Fixed country code: the border sits on the wrapper, the input inside is bare */
+  .phone { display: flex; align-items: center; gap: 0.6rem; padding-block: 0; }
+  .phone-prefix { color: var(--gold-2); font-weight: 600; padding-right: 0.6rem; border-right: 1px solid #3a352c; }
+  .phone input {
+    flex: 1;
+    min-width: 0;
+    min-height: 2.9rem;
+    padding: 0;
+    background: none;
+    border: 0;
+    color: inherit;
+    font: inherit;
+  }
+  .phone input:focus-visible { outline: none; }
+  .phone:focus-within { border-color: var(--gold-1); outline: 2px solid var(--gold-2); outline-offset: 1px; }
+  .phone:has(input[aria-invalid='true']) { border-color: var(--error); }
+
+  .select { position: relative; }
+  .select select {
+    padding-right: 2.75rem;
+    -webkit-appearance: none;
+    appearance: none;
+    cursor: pointer;
+  }
+  .select select:invalid { color: #8a847a; }
+  .select option { color: var(--text); background: var(--bg-elevated); }
+  .select :global(svg) {
+    position: absolute;
+    right: 0.9rem;
+    top: 50%;
+    width: 1.1rem;
+    height: 1.1rem;
+    translate: 0 -50%;
+    color: var(--gold-1);
+    pointer-events: none;
+  }
 
   .field-check {
     grid-template-columns: auto 1fr;
@@ -548,18 +837,20 @@ const pct = (v: number, min: number, max: number) => `${((v - min) / (max - min)
   .error { color: var(--error); font-size: 0.85rem; }
   .error:empty { display: none; }
 
-  .summary {
+  .nav {
     display: flex;
-    justify-content: space-between;
     align-items: center;
+    justify-content: space-between;
     gap: 1rem;
-    padding: 0.75rem 1rem;
-    border: 1px solid var(--border-gold);
-    border-radius: 0.5rem;
-    font-family: var(--font-serif);
-    font-size: 1.1rem;
-    color: var(--gold-2);
+    margin-top: auto;
+    padding-top: 0.25rem;
   }
+  .nav .btn { flex: 1; padding-inline: 1rem; white-space: nowrap; }
+  .nav .link-btn { flex: none; }
+  @media (max-width: 399px) {
+    .nav [data-submit] :global(svg) { display: none; }
+  }
+
   .link-btn {
     display: inline-flex;
     align-items: center;
@@ -569,7 +860,7 @@ const pct = (v: number, min: number, max: number) => `${((v - min) / (max - min)
     background: none;
     border: 0;
     color: var(--text-muted);
-    font: 600 0.85rem var(--font-sans);
+    font: 600 0.9rem var(--font-sans);
     text-decoration: underline;
     text-underline-offset: 3px;
     cursor: pointer;
@@ -586,8 +877,6 @@ const pct = (v: number, min: number, max: number) => `${((v - min) / (max - min)
   }
 
   .turnstile:empty { display: none; }
-
-  .btn-block { width: 100%; }
 
   .form-alert {
     margin-top: 1.25rem;

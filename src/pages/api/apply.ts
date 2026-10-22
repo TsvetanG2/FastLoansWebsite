@@ -33,7 +33,7 @@ export const POST: APIRoute = async ({ request, clientAddress }) => {
   try {
     body = JSON.parse(raw);
   } catch {
-    return json(400, { ok: false, message: 'Невалидна заявка. Презареди страницата и опитай отново.' });
+    return json(400, { ok: false, message: 'Невалидна заявка. Презаредете страницата и опитайте отново.' });
   }
 
   // Honeypot: real users never see this field. Pretend success so bots learn nothing.
@@ -44,12 +44,12 @@ export const POST: APIRoute = async ({ request, clientAddress }) => {
 
   if (await isRateLimited(request, clientAddress)) {
     log('apply.rate_limited');
-    return json(429, { ok: false, retry: true, message: 'Твърде много опити. Изчакай минута и опитай отново.' });
+    return json(429, { ok: false, retry: true, message: 'Твърде много опити. Изчакайте минута и опитайте отново.' });
   }
 
   const result = validate(body);
   if (!result.ok) {
-    return json(422, { ok: false, errors: result.errors, message: 'Провери отбелязаните полета.' });
+    return json(422, { ok: false, errors: result.errors, message: 'Проверете отбелязаните полета.' });
   }
 
   const ip = request.headers.get('x-real-ip') ?? clientAddress;
@@ -59,7 +59,7 @@ export const POST: APIRoute = async ({ request, clientAddress }) => {
     return json(403, {
       ok: false,
       retry: true,
-      message: 'Не успяхме да потвърдим, че не си робот. Опитай отново.',
+      message: 'Не успяхме да потвърдим, че не сте робот. Опитайте отново.',
     });
   }
 
@@ -82,7 +82,7 @@ export const POST: APIRoute = async ({ request, clientAddress }) => {
       return json(502, {
         ok: false,
         retry: true,
-        message: 'Заявката не беше изпратена заради технически проблем. Опитай отново.',
+        message: 'Заявката не беше изпратена заради технически проблем. Опитайте отново.',
       });
     }
     log('apply.lead_email', { status: 'sent', id: data.id });
@@ -91,7 +91,7 @@ export const POST: APIRoute = async ({ request, clientAddress }) => {
     return json(502, {
       ok: false,
       retry: true,
-      message: 'Заявката не беше изпратена заради технически проблем. Опитай отново.',
+      message: 'Заявката не беше изпратена заради технически проблем. Опитайте отново.',
     });
   }
 

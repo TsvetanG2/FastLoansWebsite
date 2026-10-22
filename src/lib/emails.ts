@@ -1,7 +1,7 @@
 // Email templates: table layout + inline styles so Gmail and Outlook render them.
 // No remote images (logo is a text wordmark) and no tracking pixels.
 import { site } from '../config/site';
-import { formatEur, formatMonths, type Application } from './application';
+import { HOUSING, PURPOSES, formatEur, formatMonths, type Application } from './application';
 
 const C = {
   bg: '#0a0a0a',
@@ -53,15 +53,22 @@ function layout(title: string, inner: string) {
 
 /** Email to the company with every field of the application. */
 export function leadEmail(a: Application, submittedAt: Date) {
-  const name = a.name.replace(/[\r\n]+/g, ' ');
+  const name = `${a.firstName} ${a.lastName}`;
   const subject = `Нова заявка: ${formatEur(a.amount)} / ${a.term} мес. — ${name}`;
   const rows: [string, string][] = [
     ['Желана сума', formatEur(a.amount)],
     ['Срок', formatMonths(a.term)],
-    ['Име и фамилия', name],
+    ['Име', a.firstName],
+    ['Фамилия', a.lastName],
     ['Телефон', a.phone],
     ['Имейл', a.email],
-    ['Съгласие', `Да, дадено при подаване (${sofiaTime(submittedAt)})`],
+    ['Причина за финансиране', PURPOSES[a.purpose]],
+    ['Град', a.city],
+    ['Настоящ адрес', a.currentAddress],
+    ['Адрес по лична карта', a.idAddress],
+    ['В собствено жилище ли живее', HOUSING[a.housing]],
+    ['Какво работи', a.occupation],
+    ['Съгласие', `Да, приел Общите условия и Политиката за поверителност (${sofiaTime(submittedAt)})`],
     ['Подадена на', sofiaTime(submittedAt)],
   ];
   const htmlRows = rows
