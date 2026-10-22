@@ -8,7 +8,7 @@ All visible site copy is in **Bulgarian**. Code, comments and commits in English
 **Build:**
 - Single landing page (desktop + mobile), sections in this order:
   1. Header — logo, anchor nav (Начало, За нас, Контакти), phone + working hours
-  2. Hero — headline, subline, CTA button scrolling to the form, application form on the right (below on mobile)
+  2. Hero — background photo with dark overlay, logo, headline, subline, application form on the right (below on mobile). No CTA button: the form is already visible. Logo/copy start level with the top of the form card
   3. Benefits strip — 4 items with icons; first item: "Бързо одобрение — до 10 минути", third: "Гъвкави срокове — от 3 до 60 месеца"
   4. "Защо да избереш Royal Finance?" — short text + checklist
   5. "Как да кандидатстваш?" — 3 steps: Попълни формата → Получете отговор до 10 минути → Вземи своя кредит
@@ -35,21 +35,29 @@ If something is not listed under "Build", ask before adding it.
 
 ## The form
 
-Fields:
-| Field | Type | Rules |
-|---|---|---|
-| Желана сума | slider + number | 500–5 000 €, step 50 — TODO confirm range with client |
-| Срок | slider | 3–60 months, step 1 |
-| Име и фамилия | text | required, 2–80 chars |
-| Телефон | tel | required, Bulgarian format (+359 / 08…) |
-| Имейл | email | required |
-| Съгласие | checkbox | required, unchecked by default, links to /privacy |
+Three steps, in this order (form copy uses formal "Вие"). The card takes the height of the current step and eases between heights; steps fade and slide (with reduced motion: fade + height only, no slide). Each step's progress bar fills with the share of its fields that are valid.
+
+| Step | Field | Type | Rules |
+|---|---|---|---|
+| 1 Лични данни | Вашето име | text | required, 2–40 chars |
+| 1 | Вашата фамилия | text | required, 2–40 chars |
+| 1 | Телефон за връзка | tel | required; fixed "+359" prefix shown, stored as +359XXXXXXXXX |
+| 1 | Имейл | email | required |
+| 2 Адрес и работа | Причина за финансиране | select | Покупка на вещи / Плащане на сметки / Рефинансиране на други задължения / Друго |
+| 2 | Настоящ адрес | text | required, 5–200 chars |
+| 2 | Адрес по лична карта | text | required, 5–200 chars |
+| 2 | Град | select | all 257 towns in Bulgaria (`src/lib/cities.ts`) |
+| 2 | В собствено жилище ли живеете? | select | Да / При роднини / Под наем / Друго |
+| 2 | Какво работите | text | required, free text, 2–100 chars |
+| 3 Сума и срок | Желана сума | slider + number | 500–5 000 €, step 50 — TODO confirm range with client |
+| 3 | Срок | slider | 3–60 months, step 1 |
+| 3 | Съгласие | checkbox | required, unchecked by default, accepts /terms and /privacy |
 
 Requirements:
 - Validate client-side AND server-side (same schema, e.g. zod shared between both)
 - Cloudflare Turnstile on submit, verified server-side
 - Rate-limit the endpoint with `@vercel/firewall` (Firewall rule ID `apply`, condition "@vercel/firewall"); in-memory fallback until the rule exists; honeypot field as extra fallback
-- Do not collect ЕГН, ID card data or income at this stage
+- Do not collect ЕГН (TODO: pending client decision), ID card number or income. "Адрес по лична карта" was requested on 2026-10-22 — its legal basis must be in the Privacy Policy
 
 Submission flow (`/api/apply`, emails via Resend, never called from the browser):
 1. Email to the company (`LEADS_EMAIL_TO`) with every form field
@@ -64,7 +72,7 @@ Submission flow (`/api/apply`, emails via Resend, never called from the browser)
 - Templates: HTML + plain-text version, black-and-gold brand, table layout with inline styles (Gmail + Outlook), no remote images
 - No personal data in logs, ever
 - Test with Resend test addresses (`delivered@resend.dev`) before sending real emails
-- Clear states: idle, submitting, success ("Ще се свържем с теб…"), error with retry
+- Clear states: idle, submitting, success ("Ще се свържем с Вас…"), error with retry
 - Fully keyboard-accessible, labels on every input, errors announced with `aria-live`
 
 ## Compliance rules (Bulgaria) — non-negotiable
@@ -101,8 +109,9 @@ Dark luxury style: black background, gold accents, serif headings.
 - Headings: Playfair Display (has Cyrillic). Body: Manrope (has Cyrillic). Self-host fonts, `font-display: swap`.
 - Gold used for accents, borders, buttons and icons only — never long body text.
 - Icons: thin-line gold, one consistent set (Lucide).
-- Hero background: `public/images/hero.webp` (TODO from client/licensed stock), with dark overlay so text keeps WCAG AA contrast.
+- Hero background: `assets/background.webp` (supplied 2026-10-22 from a free stock site; TODO record the source URL and its licence — free licences usually do not cover trademarks such as the visible car badge), rendered with `<Picture>` as responsive WebP, under a dark overlay so copy keeps WCAG AA contrast (checked ≥ 4.5:1 at the brightest pixel).
 - Logo: `public/logo.svg` (full) and `public/logo-mark.svg` (crown + R), vectorised from `assets/logo-source.png` and approved. Do not redraw or modify them.
+- Header is sticky and semi-transparent (blur); the hero slides under it (`--header-h`). Sections below the hero fade in on scroll (`data-reveal`, opacity only with reduced motion).
 - Mobile first. Breakpoints: 640 / 1024 px. No horizontal scroll at 360 px.
 - Use the `frontend-design` skill for any UI work.
 
@@ -133,6 +142,12 @@ TURNSTILE_SECRET_KEY=
 ```
 Production values live in Vercel → Settings → Environment Variables. Locally use `.env`.
 Never commit `.env`. Keep `.env.example` up to date.
+
+## Testing
+
+- Form tests are Playwright (Python, `webapp-testing` skill). Run them against a local stand-in for the Resend API, never the real one: start a mock on `127.0.0.1:8790` and run the dev server with `RESEND_BASE_URL=http://127.0.0.1:8790` (the SDK honours it). Check the server log shows `mock-…` ids before trusting a run.
+- Before starting a dev server, make sure nothing else listens on 4321 — a stale server with the real key will silently take the traffic.
+- Real Resend checks only with test addresses (`delivered@resend.dev`, `delivered+applicant@resend.dev`).
 
 ## Workflow
 
