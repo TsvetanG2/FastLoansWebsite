@@ -1,57 +1,108 @@
 ---
-import { nav, site } from '../config/site';
+import MapLink from './MapLink.astro';
+import { nav } from '../config/site';
+import { agentStatement, company, legalLinks } from '../data/company';
 const year = new Date().getFullYear();
 ---
 <footer class="footer">
   <hr class="gold-rule" />
-  <div class="container inner">
-    <a class="brand" href="/" aria-label="Royal Finance — начало">
-      <img src="/logo-mark.svg" alt="" width="32" height="37" loading="lazy" />
-      <span>Royal Finance</span>
-    </a>
-    <nav aria-label="Навигация във футъра">
+  <div class="container cols">
+    <div class="col brand-col">
+      <a class="brand" href="/" aria-label={`${company.brandName} — начало`}>
+        <img src="/logo-mark.svg" alt="" width="40" height="47" loading="lazy" />
+        <span>{company.brandName}</span>
+      </a>
+    </div>
+
+    <nav class="col" aria-labelledby="f-nav">
+      <h2 id="f-nav">Навигация</h2>
       <ul>{nav.map((item) => <li><a href={item.href}>{item.label}</a></li>)}</ul>
     </nav>
-    <div class="legal">
-      <p>{site.legalName} · ЕИК {site.eik} · Рег. № в БНБ {site.bnbRegistration}</p>
-      <p>© {year} Royal Finance. Всички права запазени.</p>
-      <p class="links">
-        <a href="/privacy">Политика за поверителност</a>
-        <a href="/terms">Общи условия</a>
-      </p>
+
+    <nav class="col" aria-labelledby="f-legal">
+      <h2 id="f-legal">Правна информация</h2>
+      <ul>{legalLinks.map((l) => <li><a href={l.href}>{l.label}</a></li>)}</ul>
+    </nav>
+
+    <div class="col contact-col">
+      <h2>Контакти</h2>
+      <ul>
+        <li><a class="nowrap" href={company.phoneHref}>{company.phone}</a></li>
+        <li><a class="nowrap" href={`mailto:${company.email}`}>{company.email}</a></li>
+        <li><MapLink class="addr">{company.registeredAddress}</MapLink></li>
+      </ul>
     </div>
+  </div>
+
+  <div class="container bottom">
+    <p class="agent">{agentStatement}</p>
+    <p>© {year} {company.brandName}. Всички права запазени.</p>
   </div>
 </footer>
 
 <style>
-  .footer { background: #070707; }
-  .inner {
+  .footer { background: #070707; font-size: 0.9rem; color: var(--text-muted); }
+
+  .cols {
     display: grid;
-    gap: 1.5rem;
-    padding-block: 2.5rem;
-    font-size: 0.85rem;
-    color: var(--text-muted);
+    gap: 2.25rem 2rem;
+    padding-block: 3rem 2.5rem;
+    grid-template-columns: 1fr 1fr;
   }
+  .brand-col { grid-column: 1 / -1; display: grid; gap: 0.75rem; align-content: start; }
   .brand {
-    display: flex;
+    display: inline-flex;
     align-items: center;
-    gap: 0.6rem;
+    gap: 0.7rem;
     font-family: var(--font-serif);
+    font-size: 1.2rem;
     letter-spacing: 0.08em;
     color: var(--gold-2);
     text-decoration: none;
   }
-  .brand img { width: 1.75rem; height: auto; }
-  ul { list-style: none; margin: 0; padding: 0; display: flex; flex-wrap: wrap; gap: 0.25rem 1.5rem; }
-  a { text-decoration: none; }
-  nav a, .links a { display: inline-block; padding-block: 0.4rem; }
+  .brand img { width: 2.25rem; height: auto; }
+  .contact-col { grid-column: 1 / -1; }
+  .agent { max-width: 80ch; }
+
+  h2 {
+    margin: 0 0 0.75rem;
+    font-family: var(--font-serif);
+    font-size: 1rem;
+    font-weight: 600;
+    color: var(--text);
+  }
+  ul { list-style: none; margin: 0; padding: 0; display: grid; gap: 0.15rem; }
+  a { color: var(--text-muted); text-decoration: none; }
+  ul a { display: inline-block; padding-block: 0.35rem; line-height: 1.4; }
   a:hover { color: var(--gold-2); }
-  .legal { display: grid; gap: 0.35rem; }
-  .links { display: flex; flex-wrap: wrap; gap: 0 1.25rem; }
-  .links a { text-decoration: underline; text-underline-offset: 3px; }
+  .nowrap { white-space: nowrap; }
+  .cols :global(.addr) { display: inline-block; padding-block: 0.35rem; line-height: 1.5; color: var(--text-muted); text-decoration: none; }
+  .cols :global(.addr:hover) { color: var(--gold-2); }
+
+  .bottom {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: space-between;
+    gap: 0.5rem 2rem;
+    position: relative;
+    padding-block: 1.25rem 1.75rem;
+    font-size: 0.8rem;
+  }
+  /* Divider aligned with the text, not the container padding */
+  .bottom::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    inset-inline: var(--gutter);
+    border-top: 1px solid #1f1c17;
+  }
+
+  @media (min-width: 640px) {
+    .cols { grid-template-columns: repeat(3, 1fr); }
+    .contact-col { grid-column: auto; }
+  }
   @media (min-width: 1024px) {
-    .inner { grid-template-columns: auto 1fr auto; align-items: center; gap: 3rem; }
-    .legal { text-align: right; }
-    .links { justify-content: flex-end; }
+    .cols { grid-template-columns: 1.3fr 0.8fr 1.1fr 1.3fr; gap: 3rem; padding-block: 3.5rem 3rem; }
+    .brand-col { grid-column: auto; }
   }
 </style>

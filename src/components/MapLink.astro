@@ -1,0 +1,33 @@
+---
+// Address link that opens the phone's maps app:
+// - Android: `geo:` URI → system chooser (Google Maps, Waze, …)
+// - iPhone/iPad: Apple Maps
+// - everything else (and without JS): Google Maps in a new tab
+import { company } from '../data/company';
+
+interface Props { class?: string }
+const { class: className } = Astro.props;
+const q = encodeURIComponent(company.officeMapQuery);
+---
+<a
+  class={className}
+  href={`https://www.google.com/maps/search/?api=1&query=${q}`}
+  target="_blank"
+  rel="noopener"
+  data-maps-query={company.officeMapQuery}
+  aria-label={`${company.registeredAddress} — отвори в карти`}
+><slot /></a>
+
+<script>
+  const ua = navigator.userAgent;
+  const isAndroid = /Android/i.test(ua);
+  const isIOS = /iPhone|iPad|iPod/.test(ua) || (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1);
+  if (isAndroid || isIOS) {
+    for (const a of document.querySelectorAll<HTMLAnchorElement>('a[data-maps-query]')) {
+      const q = encodeURIComponent(a.dataset.mapsQuery!);
+      a.href = isAndroid ? `geo:0,0?q=${q}` : `https://maps.apple.com/?q=${q}`;
+      // Native apps open in place; a new tab would leave a blank page behind
+      a.removeAttribute('target');
+    }
+  }
+</script>

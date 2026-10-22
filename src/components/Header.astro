@@ -19,7 +19,6 @@ import { nav, site } from '../config/site';
         {nav.map((item) => <li><a href={item.href}>{item.label}</a></li>)}
         <li class="nav-phone-mobile">
           <a href={site.phone.href}>{site.phone.display}</a>
-          <span>{site.hours}</span>
         </li>
       </ul>
     </nav>
@@ -28,7 +27,6 @@ import { nav, site } from '../config/site';
       <Phone aria-hidden="true" />
       <div>
         <a href={site.phone.href}>{site.phone.display}</a>
-        <span>{site.hours}</span>
       </div>
     </div>
   </div>
@@ -50,6 +48,35 @@ import { nav, site } from '../config/site';
       }
     });
   }
+
+  // Same-page links (menu, footer, table of contents) scroll smoothly without leaving
+  // "#about" in the address bar. Without JS they still work as normal anchors.
+  const reduce = () => matchMedia('(prefers-reduced-motion: reduce)').matches;
+  const cleanUrl = () => history.replaceState(history.state, '', location.pathname + location.search);
+
+  // Arrived from another page via "/#about": the browser has already scrolled — just tidy the URL
+  if (location.hash) addEventListener('load', () => requestAnimationFrame(cleanUrl), { once: true });
+
+  document.addEventListener('click', (e) => {
+    if (e.defaultPrevented || e.button !== 0 || e.metaKey || e.ctrlKey || e.shiftKey || e.altKey) return;
+    const link = (e.target as Element).closest<HTMLAnchorElement>('a[href]');
+    if (!link || link.target) return;
+    const url = new URL(link.href);
+    if (url.origin !== location.origin || url.pathname !== location.pathname) return;
+    const target = url.hash ? document.getElementById(decodeURIComponent(url.hash.slice(1))) : null;
+    if (url.hash && !target) return;
+    e.preventDefault();
+    const behavior = reduce() ? 'auto' : 'smooth';
+    if (target) {
+      target.scrollIntoView({ behavior });
+      // Move focus for keyboard and screen-reader users
+      if (!target.matches('a, button, input, select, textarea, [tabindex]')) target.setAttribute('tabindex', '-1');
+      target.focus({ preventScroll: true });
+    } else {
+      scrollTo({ top: 0, behavior });
+    }
+    if (location.hash) cleanUrl();
+  });
 </script>
 
 <style>
@@ -121,7 +148,6 @@ import { nav, site } from '../config/site';
     border-top: 1px solid var(--border-gold);
   }
   .nav-phone-mobile a { color: var(--gold-2); padding-bottom: 0; }
-  .nav-phone-mobile span { font-size: 0.85rem; color: var(--text-muted); }
 
   .contact { display: none; }
 
@@ -150,6 +176,5 @@ import { nav, site } from '../config/site';
     }
     .contact > :global(svg) { width: 1.25rem; height: 1.25rem; stroke-width: 1.5; }
     .contact a { display: block; font-weight: 700; text-decoration: none; color: var(--gold-2); }
-    .contact span { display: block; font-size: 0.8rem; color: var(--text-muted); }
   }
 </style>

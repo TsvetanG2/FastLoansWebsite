@@ -1,26 +1,55 @@
 ---
-import { Clock, Mail, Phone } from '@lucide/astro';
-import { site } from '../config/site';
+import { ArrowUpRight, Clock, Mail, MapPin, Phone } from '@lucide/astro';
+import MapLink from './MapLink.astro';
+import { company } from '../data/company';
+
+// "Понеделник – петък: 10:00 – 19:00 ч.; събота: …" → [["Понеделник – петък", "10:00 – 19:00 ч."], …]
+const hours = company.workingHours.split(';').map((part) => {
+  const [days, time] = part.trim().split(/:\s(.+)/);
+  // keep "10:00 – 19:00 ч." on one line
+  const t = time.replace(/(\d) – (\d)/g, '$1\u00a0–\u00a0$2').replace(/ ч\./g, '\u00a0ч.');
+  return [days[0].toUpperCase() + days.slice(1), t] as const;
+});
 ---
-<section class="section contact" id="kontakti" aria-labelledby="contact-title">
+<section class="section contact" id="contact" aria-labelledby="contact-title">
   <hr class="gold-rule top" />
   <div class="container grid" data-reveal>
-    <div>
+    <div class="intro">
       <h2 class="section-title" id="contact-title">Имаш въпроси?</h2>
       <p class="sub">Свържи се с нас. Ще ти помогнем да избереш сума и срок.</p>
     </div>
+
     <ul class="list">
       <li>
         <span class="icon-ring"><Phone aria-hidden="true" /></span>
-        <div><span class="k">Телефон</span><a href={site.phone.href}>{site.phone.display}</a></div>
-      </li>
-      <li>
-        <span class="icon-ring"><Clock aria-hidden="true" /></span>
-        <div><span class="k">Работно време</span><span>{site.hours}</span></div>
+        <div>
+          <span class="k">Телефон</span>
+          <a class="v nowrap" href={company.phoneHref}>{company.phone}</a>
+        </div>
       </li>
       <li>
         <span class="icon-ring"><Mail aria-hidden="true" /></span>
-        <div><span class="k">Имейл</span><a href={`mailto:${site.email}`}>{site.email}</a></div>
+        <div>
+          <span class="k">Имейл</span>
+          <a class="v nowrap" href={`mailto:${company.email}`}>{company.email}</a>
+        </div>
+      </li>
+      <li>
+        <span class="icon-ring"><MapPin aria-hidden="true" /></span>
+        <div>
+          <span class="k">Офис</span>
+          <MapLink class="address">
+            <span>{company.registeredAddress}</span>
+            <span class="map-hint">Отвори в карти <ArrowUpRight aria-hidden="true" /></span>
+          </MapLink>
+        </div>
+      </li>
+      <li>
+        <span class="icon-ring"><Clock aria-hidden="true" /></span>
+        <div>
+          <span class="k">Работно време</span>
+          <dl class="hours">{hours.map(([d, t]) => <><dt>{d}</dt><dd>{t}</dd></>)}</dl>
+        </div>
       </li>
     </ul>
   </div>
@@ -29,15 +58,49 @@ import { site } from '../config/site';
 <style>
   .contact { position: relative; }
   .top { position: absolute; inset: 0 0 auto; }
-  .grid { display: grid; gap: 2rem; }
-  .sub { margin-top: 0.75rem; color: var(--text-muted); }
-  .list { list-style: none; margin: 0; padding: 0; display: grid; gap: 1.25rem; }
-  li { display: flex; align-items: center; gap: 1rem; }
-  li div { display: grid; }
+  .grid { display: grid; gap: 2.5rem; }
+  .sub { margin-top: 0.75rem; color: var(--text-muted); max-width: 32ch; }
+
+  .list { list-style: none; margin: 0; padding: 0; display: grid; gap: 1.75rem; }
+  li { display: grid; grid-template-columns: auto 1fr; align-items: start; gap: 1rem; }
+  li > div { display: grid; gap: 0.3rem; min-width: 0; padding-top: 0.15rem; }
   .k { font-size: 0.8rem; color: var(--text-muted); }
-  li a { color: var(--gold-2); font-weight: 700; text-decoration: none; white-space: nowrap; }
-  li a:hover { text-decoration: underline; }
+  .v { color: var(--gold-2); font-weight: 700; text-decoration: none; line-height: 1.45; }
+  .v:hover { text-decoration: underline; text-underline-offset: 3px; }
+  .nowrap { white-space: nowrap; }
+
+  .list :global(.address) { display: grid; gap: 0.35rem; color: var(--text); text-decoration: none; line-height: 1.45; }
+  .map-hint {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.25rem;
+    font-size: 0.85rem;
+    font-weight: 700;
+    color: var(--gold-2);
+    text-decoration: underline;
+    text-underline-offset: 3px;
+  }
+  .map-hint :global(svg) { width: 0.95rem; height: 0.95rem; }
+
+  .hours {
+    display: grid;
+    /* days may wrap when narrow; the time never does */
+    grid-template-columns: minmax(0, max-content) max-content;
+    gap: 0.2rem 1rem;
+    margin: 0;
+    font-size: 0.95rem;
+    line-height: 1.45;
+  }
+  .hours dt { color: var(--text-muted); }
+  .hours dd { margin: 0; color: var(--text); white-space: nowrap; }
+
+  @media (min-width: 640px) {
+    .list { grid-template-columns: 1fr 1fr; gap: 2rem 2.5rem; }
+  }
   @media (min-width: 1024px) {
-    .list { grid-template-columns: repeat(3, auto); justify-content: space-between; }
+    /* Heading column is as wide as the heading; the right column with the hours gets the extra room */
+    .grid { grid-template-columns: max-content minmax(0, 1fr); gap: 3rem; align-items: start; }
+    .sub { max-width: 26ch; }
+    .list { grid-template-columns: 1fr 1.2fr; gap: 2rem; }
   }
 </style>
