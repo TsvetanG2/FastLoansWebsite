@@ -1,8 +1,25 @@
 ---
-import { ArrowRight } from '@lucide/astro';
+import { Picture } from 'astro:assets';
 import ApplyForm from './ApplyForm.astro';
+import heroBg from '../../assets/background.webp';
 ---
 <section class="hero" id="nachalo" aria-labelledby="hero-title">
+  <!-- Decorative background (LCP image): responsive WebP generated at build time
+       (AVIF came out larger than WebP for this already-compressed source) -->
+  <Picture
+    class="hero-bg"
+    pictureAttributes={{ style: 'display: contents' }}
+    src={heroBg}
+    alt=""
+    formats={['webp']}
+    fallbackFormat="webp"
+    widths={[640, 960, 1440, 1920, 2560]}
+    sizes="100vw"
+    quality={60}
+    loading="eager"
+    fetchpriority="high"
+    decoding="async"
+  />
   <div class="container hero-grid">
     <div class="hero-copy">
       <img class="hero-logo" src="/logo.svg" alt="" width="220" height="224" />
@@ -11,21 +28,47 @@ import ApplyForm from './ApplyForm.astro';
         Кредит от 500 до 5&nbsp;000&nbsp;€ със срок от 3 до 60 месеца. Кандидатстваш онлайн за минута.
         Получете отговор до 10 минути.
       </p>
-      <a class="btn btn-gold" href="#kandidatstvai">Кандидатствай сега <ArrowRight aria-hidden="true" /></a>
     </div>
     <ApplyForm />
   </div>
 </section>
 
 <style>
-  /* TODO: add public/images/hero.webp (client/licensed stock) as a layer under the overlay */
   .hero {
     position: relative;
-    padding-block: 2.5rem 3.5rem;
+    isolation: isolate;
+    overflow: hidden;
+    /* Pulled up under the translucent sticky header so the photo shows through it */
+    margin-top: calc(-1 * var(--header-h) - 1px);
+    padding-block: calc(var(--header-h) + 2.5rem) 3.5rem;
+    background: var(--bg);
+  }
+  .hero-bg {
+    position: absolute;
+    inset: 0;
+    z-index: -2;
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    object-position: 40% 60%;
+  }
+  /* Dark overlay keeps the copy and form at WCAG AA contrast and fades into the next section */
+  .hero::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    z-index: -1;
     background:
-      radial-gradient(60rem 30rem at 15% 0%, rgba(201, 162, 74, 0.16), transparent 60%),
-      radial-gradient(40rem 30rem at 100% 100%, rgba(201, 162, 74, 0.08), transparent 60%),
-      linear-gradient(180deg, #0f0d09, var(--bg));
+      linear-gradient(180deg, rgba(10, 10, 10, 0.55) 0%, rgba(10, 10, 10, 0.35) 45%, var(--bg) 100%),
+      rgba(10, 10, 10, 0.55);
+  }
+  @media (min-width: 1024px) {
+    .hero::before {
+      background:
+        radial-gradient(40rem 30rem at 22% 65%, rgba(10, 10, 10, 0.88), rgba(10, 10, 10, 0.6) 45%, transparent 75%),
+        linear-gradient(90deg, rgba(10, 10, 10, 0.88) 0%, rgba(10, 10, 10, 0.55) 45%, rgba(10, 10, 10, 0.35) 70%, rgba(10, 10, 10, 0.6) 100%),
+        linear-gradient(180deg, rgba(10, 10, 10, 0.3) 0%, transparent 30%, transparent 75%, var(--bg) 100%);
+    }
   }
   .hero-grid {
     display: grid;
@@ -41,12 +84,21 @@ import ApplyForm from './ApplyForm.astro';
   }
   .lead {
     font-size: 1.075rem;
-    color: var(--text-muted);
+    color: #d6cfc3; /* lighter than --text-muted: it sits on the photo */
     max-width: 44ch;
   }
   @media (min-width: 1024px) {
-    .hero { padding-block: 4.5rem 5.5rem; }
-    .hero-grid { grid-template-columns: 1fr minmax(24rem, 27rem); gap: 4rem; }
+    .hero { padding-block: calc(var(--header-h) + 4rem) 5rem; }
+    /* Tall enough for the longest form step, so the section keeps one height while
+       the card grows and shrinks between steps (it is pinned to the top). */
+    .hero-grid {
+      grid-template-columns: 1fr minmax(26rem, 30rem);
+      gap: 4.5rem;
+      min-height: 56rem;
+      align-items: start;
+    }
+    /* Copy starts level with the top of the form card */
+    .hero-copy { align-self: start; }
     .hero-logo { display: block; width: 13.5rem; height: auto; margin-bottom: 0.5rem; }
   }
 </style>

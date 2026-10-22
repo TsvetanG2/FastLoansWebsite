@@ -57,15 +57,17 @@ import { nav, site } from '../config/site';
     position: sticky;
     top: 0;
     z-index: 50;
-    background: rgba(10, 10, 10, 0.92);
-    backdrop-filter: blur(8px);
-    border-bottom: 1px solid var(--border-gold);
+    /* Semi-transparent: the hero photo shows through, blurred */
+    background: rgba(10, 10, 10, 0.5);
+    -webkit-backdrop-filter: blur(14px) saturate(1.2);
+    backdrop-filter: blur(14px) saturate(1.2);
+    border-bottom: 1px solid rgba(201, 162, 74, 0.22);
   }
   .bar {
     display: flex;
     align-items: center;
     gap: 1rem;
-    min-height: 4.25rem;
+    height: var(--header-h);
   }
   .brand {
     display: flex;

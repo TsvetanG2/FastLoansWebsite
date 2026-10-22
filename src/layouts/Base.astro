@@ -35,6 +35,12 @@ const ogImage = new URL('/og.png', Astro.site);
     <meta property="og:image:width" content="1200" />
     <meta property="og:image:height" content="630" />
     <meta name="twitter:card" content="summary_large_image" />
+
+    <!-- Sections fade in on scroll; set before first paint so nothing flashes.
+         Without JS (or IntersectionObserver) everything simply stays visible. -->
+    <script is:inline>
+      if ('IntersectionObserver' in window) document.documentElement.classList.add('js-reveal');
+    </script>
   </head>
   <body>
     <a class="skip-link" href="#main">Към съдържанието</a>
@@ -43,5 +49,18 @@ const ogImage = new URL('/og.png', Astro.site);
       <slot />
     </main>
     <Footer />
+    <script>
+      const io = new IntersectionObserver(
+        (entries) => {
+          for (const e of entries) {
+            if (!e.isIntersecting) continue;
+            e.target.classList.add('is-visible');
+            io.unobserve(e.target);
+          }
+        },
+        { rootMargin: '0px 0px -12% 0px', threshold: 0.1 },
+      );
+      document.querySelectorAll('[data-reveal]').forEach((el) => io.observe(el));
+    </script>
   </body>
 </html>
