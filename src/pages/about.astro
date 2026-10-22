@@ -1,0 +1,69 @@
+---
+import Base from '../layouts/Base.astro';
+import LegalPage from '../components/LegalPage.astro';
+import { BNB_REGISTER_URL, company, lender } from '../data/company';
+
+// DRAFT: must be reviewed by the client's lawyer before launch (see LEGAL_TODO.md).
+const toc = [
+  { id: 'agent', label: 'За нас' },
+  { id: 'kreditor', label: 'Кредитор' },
+  { id: 'nadzor', label: 'Надзорни органи' },
+];
+// The lender's website is shown only once the client supplies it (no visible TODO)
+const lenderWebsite = lender.website.startsWith('[TODO') ? null : lender.website;
+---
+<Base
+  title="За нас и информация за кредитора — Royal Finance"
+  description={`${company.brandName} (${company.legalName}) е агент на ${lender.legalName}. Данни за агента и за кредитора, регистрация в БНБ.`}
+>
+  <LegalPage title="За нас и информация за кредитора" toc={toc}>
+    <h2 id="agent">1. За нас</h2>
+    <p>
+      {company.brandName} е търговска марка на {company.legalName}. Дружеството действа като агент на
+      {' '}{lender.legalName} и не отпуска кредити от свое име. Кредитите се отпускат от {lender.legalName}.
+    </p>
+    <dl>
+      <dt>Наименование</dt><dd>{company.legalName} ({company.legalNameLatin})</dd>
+      <dt>Търговска марка</dt><dd>{company.brandName}</dd>
+      <dt>ЕИК</dt><dd>{company.eik}</dd>
+      <dt>Седалище и адрес на управление</dt><dd>{company.registeredAddress}</dd>
+      <dt>Адрес за кореспонденция</dt><dd>{company.correspondenceAddress}</dd>
+      <dt>Телефон</dt><dd><a href={company.phoneHref}>{company.phone}</a></dd>
+      <dt>Имейл</dt><dd><a href={`mailto:${company.email}`}>{company.email}</a></dd>
+      <dt>Работно време</dt><dd>{company.workingHours}<br />{company.holidayHours}</dd>
+    </dl>
+
+    <h2 id="kreditor">2. Кредитор</h2>
+    <p>
+      {lender.legalName} е вписано в регистъра на финансовите институции по чл. 3а от Закона за кредитните
+      институции, воден от Българската народна банка, под рег. № {lender.bnb.regNumber}.
+    </p>
+    <dl>
+      <dt>Наименование</dt><dd>{lender.legalName}</dd>
+      <dt>ЕИК</dt><dd>{lender.eik}</dd>
+      <dt>Седалище и адрес на управление</dt><dd>{lender.registeredAddress}</dd>
+      <dt>Адрес за кореспонденция</dt><dd>{lender.correspondenceAddress}</dd>
+      {lender.phone && <><dt>Телефон</dt><dd>{lender.phone}</dd></>}
+      {lender.email && <><dt>Имейл</dt><dd><a href={`mailto:${lender.email}`}>{lender.email}</a></dd></>}
+      <dt>Рег. № в БНБ</dt><dd>{lender.bnb.regNumber}</dd>
+      <dt>Решение на БНБ</dt><dd>{lender.bnb.decision}</dd>
+      <dt>Дата на вписване</dt><dd>{lender.bnb.regDate}</dd>
+      <dt>Вписана дейност</dt><dd>{lender.bnb.activity}</dd>
+      {lenderWebsite && <><dt>Сайт</dt><dd><a href={lenderWebsite} rel="noopener" target="_blank">{lenderWebsite}</a></dd></>}
+    </dl>
+    <p>
+      За всички въпроси относно кредита, заявката и договора се обръщайте към {company.brandName}:
+      {' '}<a href={company.phoneHref}>{company.phone}</a> или <a href={`mailto:${company.email}`}>{company.email}</a>.
+    </p>
+    <p>
+      <a href={BNB_REGISTER_URL} rel="noopener" target="_blank">Регистър на финансовите институции на БНБ</a>
+    </p>
+
+    <h2 id="nadzor">3. Надзорни органи</h2>
+    <ul>
+      <li>Българска народна банка (БНБ) — <a href="https://www.bnb.bg" rel="noopener" target="_blank">www.bnb.bg</a></li>
+      <li>Комисия за защита на потребителите (КЗП) — <a href="https://www.kzp.bg" rel="noopener" target="_blank">www.kzp.bg</a></li>
+      <li>Комисия за защита на личните данни (КЗЛД) — <a href="https://www.cpdp.bg" rel="noopener" target="_blank">www.cpdp.bg</a></li>
+    </ul>
+  </LegalPage>
+</Base>

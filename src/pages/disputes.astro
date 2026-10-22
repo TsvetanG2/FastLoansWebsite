@@ -1,0 +1,57 @@
+---
+import Base from '../layouts/Base.astro';
+import LegalPage from '../components/LegalPage.astro';
+import { company, lender } from '../data/company';
+
+// DRAFT: must be reviewed by the client's lawyer before launch (see LEGAL_TODO.md).
+// Do NOT link the EU ODR platform: it was closed after 19.07.2025.
+const toc = [
+  { id: 'zhalba', label: 'Как да подадете жалба' },
+  { id: 'srok', label: 'Срок за отговор' },
+  { id: 'kzp', label: 'Комисия за защита на потребителите' },
+  { id: 'aris', label: 'Алтернативно решаване на спорове' },
+];
+---
+<Base
+  title="Решаване на спорове — Royal Finance"
+  description={`Как да подадете жалба до ${company.legalName} и към кои органи можете да се обърнете.`}
+>
+  <LegalPage title="Решаване на спорове" toc={toc}>
+    <h2 id="zhalba">1. Как да подадете жалба</h2>
+    <p>Можете да подадете жалба по един от следните начини:</p>
+    <ul>
+      <li>писмено, на адрес: {company.correspondenceAddress};</li>
+      <li>по имейл: <a href={`mailto:${company.complaintsEmail}`}>{company.complaintsEmail}</a>;</li>
+      <li>по телефон: <a href={company.phoneHref}>{company.phone}</a> ({company.workingHours}).</li>
+    </ul>
+
+    <h3>Жалби, свързани с договора за кредит</h3>
+    <p>
+      Жалби, свързани с договора за кредит, можете да подадете и до кредитора {lender.legalName}:
+    </p>
+    <ul>
+      {lender.complaintsEmail && (
+        <li>по имейл: <a href={`mailto:${lender.complaintsEmail}`}>{lender.complaintsEmail}</a>;</li>
+      )}
+      <li>писмено, на адрес: {lender.registeredAddress}.</li>
+    </ul>
+
+    <h2 id="srok">2. Срок за отговор</h2>
+    <p>
+      Ще Ви отговорим писмено в срок до {company.complaintResponseDays} дни от получаване на жалбата.
+    </p>
+
+    <h2 id="kzp">3. Комисия за защита на потребителите</h2>
+    <p>
+      Имате право да сезирате Комисията за защита на потребителите (КЗП): гр. София, ул. „Врабча“ № 1,
+      тел. 0700 111 22, <a href="https://www.kzp.bg" rel="noopener" target="_blank">www.kzp.bg</a>.
+    </p>
+
+    <h2 id="aris">4. Алтернативно решаване на спорове</h2>
+    <p>
+      Имате право да използвате органите за алтернативно решаване на потребителски спорове и помирителните
+      комисии по Закона за защита на потребителите, включително Общата помирителна комисия за спорове в
+      областта на финансовите услуги към КЗП.
+    </p>
+  </LegalPage>
+</Base>

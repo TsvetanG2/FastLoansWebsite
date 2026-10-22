@@ -1,10 +1,68 @@
 ---
 import Base from '../layouts/Base.astro';
 import LegalPage from '../components/LegalPage.astro';
+import { company, lender } from '../data/company';
+
+// DRAFT: must be reviewed by the client's lawyer before launch (see LEGAL_TODO.md).
+const toc = [
+  { id: 'dostavchik', label: 'Кой предоставя сайта' },
+  { id: 'prednaznachenie', label: 'Предназначение на сайта' },
+  { id: 'zayavka', label: 'Заявката не е договор' },
+  { id: 'verni-danni', label: 'Верни данни' },
+  { id: 'avtorsko', label: 'Авторско право' },
+  { id: 'otgovornost', label: 'Ограничаване на отговорността' },
+  { id: 'pravo', label: 'Приложимо право и спорове' },
+];
 ---
-<Base title="Общи условия — Royal Finance" description="Общи условия за ползване на сайта на Royal Finance.">
-  <LegalPage title="Общи условия">
-    <!-- TODO: placeholder. The client supplies the final legal text. -->
-    <p class="todo">TODO: Окончателният текст ще бъде предоставен от клиента.</p>
+<Base
+  title="Общи условия — Royal Finance"
+  description={`Общи условия за ползване на сайта ${company.brandName}.`}
+>
+  <LegalPage title="Общи условия за ползване на сайта" toc={toc}>
+    <h2 id="dostavchik">1. Кой предоставя сайта</h2>
+    <p>
+      Сайтът {company.brandName} се предоставя от {company.legalName} ({company.legalNameLatin}),
+      ЕИК {company.eik}, със седалище и адрес на управление: {company.registeredAddress}.
+      Телефон: <a href={company.phoneHref}>{company.phone}</a>, имейл:{' '}
+      <a href={`mailto:${company.email}`}>{company.email}</a>.
+    </p>
+    <p>
+      {company.legalName} действа като агент на {lender.legalName}, ЕИК {lender.eik}, вписано в регистъра на
+      финансовите институции към БНБ под № {lender.bnb.regNumber}. Дружеството не отпуска кредити от свое име —
+      кредитите се отпускат от {lender.legalName}. Повече: <a href="/about">За нас и информация за кредитора</a>.
+    </p>
+
+    <h2 id="prednaznachenie">2. Предназначение на сайта</h2>
+    <p>Сайтът служи за информация и за подаване на заявка за кредит.</p>
+
+    <h2 id="zayavka">3. Заявката не е договор</h2>
+    <p>
+      <strong>Подаването на заявка не е договор за кредит и не гарантира одобрение.</strong> Решението зависи
+      от оценка на кредитоспособността Ви по чл. 16 от Закона за потребителския кредит. Преди сключване на
+      договор ще получите Стандартен европейски формуляр с цялата преддоговорна информация, включително
+      годишния процент на разходите (ГПР).
+    </p>
+
+    <h2 id="verni-danni">4. Верни данни</h2>
+    <p>Задължавате се да подавате верни, точни и пълни данни във формата за кандидатстване.</p>
+
+    <h2 id="avtorsko">5. Авторско право</h2>
+    <p>
+      Съдържанието на сайта и логото {company.brandName} са обект на авторско право и не могат да се
+      използват без писменото съгласие на {company.legalName}.
+    </p>
+
+    <h2 id="otgovornost">6. Ограничаване на отговорността</h2>
+    <p>
+      Дружеството не носи отговорност за временна недостъпност на сайта поради технически прекъсвания,
+      поддръжка или обстоятелства извън неговия контрол, както и за съдържанието на външни сайтове, към
+      които сайтът препраща.
+    </p>
+
+    <h2 id="pravo">7. Приложимо право и спорове</h2>
+    <p>
+      Към тези условия се прилага българското право. За начините за решаване на спорове вижте{' '}
+      <a href="/disputes">Решаване на спорове</a>.
+    </p>
   </LegalPage>
 </Base>

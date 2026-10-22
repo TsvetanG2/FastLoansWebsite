@@ -1,23 +1,81 @@
 ---
-interface Props { title: string }
-const { title } = Astro.props;
+import { company } from '../data/company';
+
+interface Props {
+  title: string;
+  /** Section anchors for the table of contents at the top. */
+  toc: { id: string; label: string }[];
+}
+const { title, toc } = Astro.props;
 ---
 <section class="section legal">
-  <div class="container prose">
+  <article class="container prose">
     <h1 class="section-title">{title}</h1>
+
+    <nav class="toc" aria-labelledby="toc-title">
+      <h2 id="toc-title">Съдържание</h2>
+      <ol>
+        {toc.map((t) => <li><a href={`#${t.id}`}>{t.label}</a></li>)}
+      </ol>
+    </nav>
+
     <slot />
-  </div>
+
+    <p class="effective">В сила от: {company.effectiveDate} г.</p>
+  </article>
 </section>
 
 <style>
-  .prose { max-width: 46rem; }
-  .prose :global(h2) { font-size: 1.35rem; color: var(--gold-2); margin-top: 2.25rem; }
-  .prose :global(p), .prose :global(li) { color: var(--text-muted); margin-top: 0.9rem; }
-  .prose :global(.todo) {
-    margin-top: 1.5rem;
-    padding: 0.75rem 1rem;
-    border: 1px dashed var(--gold-1);
-    border-radius: 0.5rem;
+  .prose { max-width: calc(72ch + 2 * var(--gutter)); }
+  .prose :global(h2) {
+    font-size: 1.35rem;
     color: var(--gold-2);
+    margin-top: 2.5rem;
+    scroll-margin-top: calc(var(--header-h) + 1rem);
+  }
+  .prose :global(h3) { font-size: 1.05rem; margin-top: 1.5rem; }
+  .prose :global(p),
+  .prose :global(li),
+  .prose :global(td),
+  .prose :global(th) { color: #cfc8bc; line-height: 1.7; }
+  .prose :global(p) { margin-top: 0.9rem; }
+  .prose :global(ul) { margin: 0.9rem 0 0; padding-left: 1.25rem; }
+  .prose :global(li + li) { margin-top: 0.4rem; }
+  .prose :global(a) { color: var(--gold-2); text-underline-offset: 3px; overflow-wrap: anywhere; }
+  .prose :global(strong) { color: var(--text); }
+  .prose :global(.table-wrap) { margin-top: 1rem; overflow-x: auto; }
+  .prose :global(table) { width: 100%; border-collapse: collapse; font-size: 0.95rem; }
+  .prose :global(th),
+  .prose :global(td) {
+    padding: 0.75rem 0.75rem 0.75rem 0;
+    border-bottom: 1px solid #2b2721;
+    text-align: left;
+    vertical-align: top;
+  }
+  .prose :global(th) { color: var(--text); font-weight: 600; }
+  .prose :global(dl) { margin: 1rem 0 0; display: grid; gap: 0.6rem; }
+  .prose :global(dt) { color: var(--text-muted); font-size: 0.85rem; }
+  .prose :global(dd) { margin: 0; color: var(--text); }
+  @media (min-width: 640px) {
+    .prose :global(dl) { grid-template-columns: max-content 1fr; column-gap: 1.5rem; }
+    .prose :global(dt) { padding-top: 0.15rem; }
+  }
+
+  .toc {
+    margin-top: 2rem;
+    padding: 1.25rem 1.5rem;
+    border: 1px solid var(--border-gold);
+    border-radius: 0.75rem;
+    background: var(--bg-elevated);
+  }
+  .toc h2 { margin-top: 0; font-size: 1rem; color: var(--text); }
+  .toc ol { margin: 0.5rem 0 0; padding-left: 1.25rem; }
+  .toc li { margin-top: 0.3rem; }
+
+  .effective {
+    margin-top: 3rem;
+    padding-top: 1rem;
+    border-top: 1px solid #2b2721;
+    font-size: 0.9rem;
   }
 </style>
