@@ -1,0 +1,43 @@
+---
+import { Clock, Mail, Phone } from '@lucide/astro';
+import { site } from '../config/site';
+---
+<section class="section contact" id="kontakti" aria-labelledby="contact-title">
+  <hr class="gold-rule top" />
+  <div class="container grid">
+    <div>
+      <h2 class="section-title" id="contact-title">Имаш въпроси?</h2>
+      <p class="sub">Свържи се с нас. Ще ти помогнем да избереш сума и срок.</p>
+    </div>
+    <ul class="list">
+      <li>
+        <span class="icon-ring"><Phone aria-hidden="true" /></span>
+        <div><span class="k">Телефон</span><a href={site.phone.href}>{site.phone.display}</a></div>
+      </li>
+      <li>
+        <span class="icon-ring"><Clock aria-hidden="true" /></span>
+        <div><span class="k">Работно време</span><span>{site.hours}</span></div>
+      </li>
+      <li>
+        <span class="icon-ring"><Mail aria-hidden="true" /></span>
+        <div><span class="k">Имейл</span><a href={`mailto:${site.email}`}>{site.email}</a></div>
+      </li>
+    </ul>
+  </div>
+</section>
+
+<style>
+  .contact { position: relative; }
+  .top { position: absolute; inset: 0 0 auto; }
+  .grid { display: grid; gap: 2rem; }
+  .sub { margin-top: 0.75rem; color: var(--text-muted); }
+  .list { list-style: none; margin: 0; padding: 0; display: grid; gap: 1.25rem; }
+  li { display: flex; align-items: center; gap: 1rem; }
+  li div { display: grid; }
+  .k { font-size: 0.8rem; color: var(--text-muted); }
+  li a { color: var(--gold-2); font-weight: 700; text-decoration: none; white-space: nowrap; }
+  li a:hover { text-decoration: underline; }
+  @media (min-width: 1024px) {
+    .list { grid-template-columns: repeat(3, auto); justify-content: space-between; }
+  }
+</style>

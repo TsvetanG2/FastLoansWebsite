@@ -1,0 +1,31 @@
+---
+import Base from '../layouts/Base.astro';
+import LegalPage from '../components/LegalPage.astro';
+import { site } from '../config/site';
+---
+<Base
+  title="Политика за поверителност — Royal Finance"
+  description="Как Royal Finance обработва личните данни, подадени чрез формата за кандидатстване."
+>
+  <LegalPage title="Политика за поверителност">
+    <!-- TODO: placeholder. The client supplies the final legal text. -->
+    <p class="todo">TODO: Окончателният текст ще бъде предоставен от клиента.</p>
+
+    <h2>Администратор на данните</h2>
+    <p>{site.legalName}, ЕИК {site.eik}. Имейл: {site.email}.</p>
+
+    <h2>Какви данни събираме</h2>
+    <p>Желана сума и срок, име и фамилия, телефон и имейл, както и съгласието ти за обработване на данните.</p>
+
+    <h2>Обработващи данни</h2>
+    <p>
+      Заявките се изпращат по имейл чрез Resend, Inc. (САЩ). TODO: правно основание за предаването
+      към САЩ (DPA със стандартни договорни клаузи) — уточнява се с клиента.
+    </p>
+    <p>Сайтът се хоства от Vercel Inc., а функцията за формата работи в регион Франкфурт (ЕС).</p>
+    <p>За защита от спам използваме Cloudflare Turnstile.</p>
+
+    <h2>Срок на съхранение и права</h2>
+    <p>TODO: срок на съхранение, права по GDPR и ред за упражняването им.</p>
+  </LegalPage>
+</Base>

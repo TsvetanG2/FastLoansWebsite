@@ -1,0 +1,57 @@
+---
+import { nav, site } from '../config/site';
+const year = new Date().getFullYear();
+---
+<footer class="footer">
+  <hr class="gold-rule" />
+  <div class="container inner">
+    <a class="brand" href="/" aria-label="Royal Finance — начало">
+      <img src="/logo-mark.svg" alt="" width="32" height="37" loading="lazy" />
+      <span>Royal Finance</span>
+    </a>
+    <nav aria-label="Навигация във футъра">
+      <ul>{nav.map((item) => <li><a href={item.href}>{item.label}</a></li>)}</ul>
+    </nav>
+    <div class="legal">
+      <p>{site.legalName} · ЕИК {site.eik} · Рег. № в БНБ {site.bnbRegistration}</p>
+      <p>© {year} Royal Finance. Всички права запазени.</p>
+      <p class="links">
+        <a href="/privacy">Политика за поверителност</a>
+        <a href="/terms">Общи условия</a>
+      </p>
+    </div>
+  </div>
+</footer>
+
+<style>
+  .footer { background: #070707; }
+  .inner {
+    display: grid;
+    gap: 1.5rem;
+    padding-block: 2.5rem;
+    font-size: 0.85rem;
+    color: var(--text-muted);
+  }
+  .brand {
+    display: flex;
+    align-items: center;
+    gap: 0.6rem;
+    font-family: var(--font-serif);
+    letter-spacing: 0.08em;
+    color: var(--gold-2);
+    text-decoration: none;
+  }
+  .brand img { width: 1.75rem; height: auto; }
+  ul { list-style: none; margin: 0; padding: 0; display: flex; flex-wrap: wrap; gap: 0.25rem 1.5rem; }
+  a { text-decoration: none; }
+  nav a, .links a { display: inline-block; padding-block: 0.4rem; }
+  a:hover { color: var(--gold-2); }
+  .legal { display: grid; gap: 0.35rem; }
+  .links { display: flex; flex-wrap: wrap; gap: 0 1.25rem; }
+  .links a { text-decoration: underline; text-underline-offset: 3px; }
+  @media (min-width: 1024px) {
+    .inner { grid-template-columns: auto 1fr auto; align-items: center; gap: 3rem; }
+    .legal { text-align: right; }
+    .links { justify-content: flex-end; }
+  }
+</style>

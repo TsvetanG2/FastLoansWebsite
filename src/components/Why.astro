@@ -1,0 +1,55 @@
+---
+import { CircleCheck } from '@lucide/astro';
+
+const points = [
+  'Кандидатстване онлайн',
+  'Бързо одобрение до 10 минути',
+  'Срок от 3 до 60 месеца',
+  // TODO-CLAIM: the two points below need client confirmation
+  'Поверителност на личните данни',
+  'Индивидуален подход',
+];
+---
+<section class="section why" id="za-nas" aria-labelledby="why-title">
+  <div class="container grid">
+    <div class="copy">
+      <h2 class="section-title" id="why-title">Защо да избереш Royal&nbsp;Finance?</h2>
+      <p>
+        Вярваме, че всеки заслужава финансова свобода. Затова направихме кандидатстването кратко и ясно:
+        попълваш няколко полета онлайн, а наш консултант се свързва с теб.
+      </p>
+    </div>
+    <img class="mark" src="/logo-mark.svg" alt="" width="200" height="234" loading="lazy" />
+    <ul class="points">
+      {points.map((p) => <li><CircleCheck aria-hidden="true" />{p}</li>)}
+    </ul>
+  </div>
+</section>
+
+<style>
+  .why {
+    position: relative;
+    overflow: hidden;
+    background:
+      linear-gradient(115deg, transparent 46%, rgba(232, 201, 122, 0.10) 50%, transparent 54%),
+      radial-gradient(30rem 20rem at 50% 50%, rgba(201, 162, 74, 0.12), transparent 70%),
+      var(--bg);
+  }
+  .grid { display: grid; gap: 2.5rem; align-items: center; }
+  .copy { display: grid; gap: 1.25rem; }
+  .copy p { color: var(--text-muted); max-width: 46ch; }
+  .mark {
+    width: 9rem;
+    height: auto;
+    justify-self: center;
+    filter: drop-shadow(0 10px 40px rgba(201, 162, 74, 0.35));
+  }
+  .points { list-style: none; margin: 0; padding: 0; display: grid; gap: 0.9rem; }
+  .points li { display: flex; align-items: center; gap: 0.75rem; }
+  .points :global(svg) { flex: none; width: 1.35rem; height: 1.35rem; color: var(--gold-2); stroke-width: 1.5; }
+
+  @media (min-width: 1024px) {
+    .grid { grid-template-columns: 1.2fr auto 1fr; gap: 4rem; }
+    .mark { width: 12rem; }
+  }
+</style>

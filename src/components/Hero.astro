@@ -1,0 +1,52 @@
+---
+import { ArrowRight } from '@lucide/astro';
+import ApplyForm from './ApplyForm.astro';
+---
+<section class="hero" id="nachalo" aria-labelledby="hero-title">
+  <div class="container hero-grid">
+    <div class="hero-copy">
+      <img class="hero-logo" src="/logo.svg" alt="" width="220" height="224" />
+      <h1 id="hero-title">Твоите планове заслужават подкрепа</h1>
+      <p class="lead">
+        Кредит от 500 до 5&nbsp;000&nbsp;€ със срок от 3 до 60 месеца. Кандидатстваш онлайн за минута.
+        Получете отговор до 10 минути.
+      </p>
+      <a class="btn btn-gold" href="#kandidatstvai">Кандидатствай сега <ArrowRight aria-hidden="true" /></a>
+    </div>
+    <ApplyForm />
+  </div>
+</section>
+
+<style>
+  /* TODO: add public/images/hero.webp (client/licensed stock) as a layer under the overlay */
+  .hero {
+    position: relative;
+    padding-block: 2.5rem 3.5rem;
+    background:
+      radial-gradient(60rem 30rem at 15% 0%, rgba(201, 162, 74, 0.16), transparent 60%),
+      radial-gradient(40rem 30rem at 100% 100%, rgba(201, 162, 74, 0.08), transparent 60%),
+      linear-gradient(180deg, #0f0d09, var(--bg));
+  }
+  .hero-grid {
+    display: grid;
+    gap: 2.5rem;
+    align-items: center;
+  }
+  .hero-copy { display: grid; gap: 1.25rem; justify-items: start; }
+  .hero-logo { display: none; }
+  h1 {
+    font-size: clamp(2.1rem, 1.4rem + 3.5vw, 3.6rem);
+    color: var(--text);
+    max-width: 15ch;
+  }
+  .lead {
+    font-size: 1.075rem;
+    color: var(--text-muted);
+    max-width: 44ch;
+  }
+  @media (min-width: 1024px) {
+    .hero { padding-block: 4.5rem 5.5rem; }
+    .hero-grid { grid-template-columns: 1fr minmax(24rem, 27rem); gap: 4rem; }
+    .hero-logo { display: block; width: 13.5rem; height: auto; margin-bottom: 0.5rem; }
+  }
+</style>

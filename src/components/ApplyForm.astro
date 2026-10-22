@@ -1,0 +1,629 @@
+---
+import { ArrowLeft, ArrowRight, CircleCheck, Lock, RotateCcw } from '@lucide/astro';
+import { AMOUNT, TERM, formatEur, formatMonths } from '../lib/application';
+
+const pct = (v: number, min: number, max: number) => `${((v - min) / (max - min)) * 100}%`;
+---
+<div class="apply" id="kandidatstvai">
+  <form class="apply-form" id="apply-form" novalidate data-step="1">
+    <h2 class="apply-title">Кандидатствай за кредит</h2>
+
+    <fieldset class="step step-1">
+      <legend class="visually-hidden">Стъпка 1 от 2: сума и срок</legend>
+
+      <div class="field">
+        <div class="field-head">
+          <label for="amount-range">Желана сума</label>
+          <div class="amount-box">
+            <label for="amount" class="visually-hidden">Желана сума в евро</label>
+            <input
+              id="amount"
+              name="amount"
+              type="number"
+              inputmode="numeric"
+              min={AMOUNT.min}
+              max={AMOUNT.max}
+              step={AMOUNT.step}
+              value={AMOUNT.initial}
+              aria-describedby="amount-error"
+            />
+            <span aria-hidden="true">€</span>
+          </div>
+        </div>
+        <input
+          id="amount-range"
+          class="range"
+          type="range"
+          min={AMOUNT.min}
+          max={AMOUNT.max}
+          step={AMOUNT.step}
+          value={AMOUNT.initial}
+          style={`--pct:${pct(AMOUNT.initial, AMOUNT.min, AMOUNT.max)}`}
+          aria-valuetext={formatEur(AMOUNT.initial)}
+        />
+        <div class="range-limits" aria-hidden="true">
+          <span>{formatEur(AMOUNT.min)}</span><span>{formatEur(AMOUNT.max)}</span>
+        </div>
+        <p class="error" id="amount-error" data-error-for="amount"></p>
+      </div>
+
+      <div class="field">
+        <div class="field-head">
+          <label for="term">Срок на изплащане</label>
+          <output id="term-output" for="term" class="term-value">{formatMonths(TERM.initial)}</output>
+        </div>
+        <input
+          id="term"
+          name="term"
+          class="range"
+          type="range"
+          min={TERM.min}
+          max={TERM.max}
+          step={TERM.step}
+          value={TERM.initial}
+          style={`--pct:${pct(TERM.initial, TERM.min, TERM.max)}`}
+          aria-valuetext={formatMonths(TERM.initial)}
+          aria-describedby="term-error"
+        />
+        <div class="range-limits" aria-hidden="true">
+          <span>{formatMonths(TERM.min)}</span><span>{formatMonths(TERM.max)}</span>
+        </div>
+        <p class="error" id="term-error" data-error-for="term"></p>
+      </div>
+
+      <button class="btn btn-gold btn-block" type="button" data-action="next">
+        Продължи <ArrowRight aria-hidden="true" />
+      </button>
+    </fieldset>
+
+    <fieldset class="step step-2" disabled>
+      <legend class="visually-hidden">Стъпка 2 от 2: данни за контакт</legend>
+
+      <p class="summary">
+        <span id="summary-text"></span>
+        <button type="button" class="link-btn" data-action="back">
+          <ArrowLeft aria-hidden="true" /> Промени
+        </button>
+      </p>
+
+      <div class="field">
+        <label for="name">Име и фамилия</label>
+        <input id="name" name="name" type="text" autocomplete="name" maxlength="80" required aria-describedby="name-error" />
+        <p class="error" id="name-error" data-error-for="name"></p>
+      </div>
+
+      <div class="field">
+        <label for="phone">Телефон</label>
+        <input id="phone" name="phone" type="tel" autocomplete="tel" inputmode="tel" placeholder="0888 123 456" required aria-describedby="phone-error" />
+        <p class="error" id="phone-error" data-error-for="phone"></p>
+      </div>
+
+      <div class="field">
+        <label for="email">Имейл</label>
+        <input id="email" name="email" type="email" autocomplete="email" maxlength="254" required aria-describedby="email-error" />
+        <p class="error" id="email-error" data-error-for="email"></p>
+      </div>
+
+      <div class="field field-check">
+        <input id="consent" name="consent" type="checkbox" required aria-describedby="consent-error" />
+        <label for="consent">
+          Съгласен/на съм личните ми данни да бъдат обработени за целите на заявката според{" "}
+          <a href="/privacy" target="_blank" rel="noopener">Политиката за поверителност</a>.
+        </label>
+        <p class="error" id="consent-error" data-error-for="consent"></p>
+      </div>
+
+      <!-- Honeypot: hidden from people and assistive tech, bots tend to fill it -->
+      <div class="hp" aria-hidden="true">
+        <label for="website">Уебсайт</label>
+        <input id="website" name="website" type="text" tabindex="-1" autocomplete="off" />
+      </div>
+
+      <div class="turnstile" id="turnstile"></div>
+
+      <button class="btn btn-gold btn-block" type="submit" data-submit>
+        <span data-label>Изпрати заявката</span> <ArrowRight aria-hidden="true" />
+      </button>
+    </fieldset>
+
+    <div class="form-alert" id="form-alert" role="alert" hidden>
+      <p id="form-alert-text"></p>
+      <button type="button" class="btn btn-outline" data-action="retry" hidden>
+        <RotateCcw aria-hidden="true" /> Опитай отново
+      </button>
+    </div>
+
+    <p class="secure"><Lock aria-hidden="true" /> Данните ти се изпращат по защитена връзка</p>
+    <p class="visually-hidden" id="form-status" aria-live="polite"></p>
+    <noscript><p class="error">За да кандидатстваш, включи JavaScript в браузъра си.</p></noscript>
+  </form>
+
+  <div class="apply-success" id="apply-success" tabindex="-1" hidden>
+    <CircleCheck aria-hidden="true" />
+    <h2>Заявката е изпратена</h2>
+    <p>Получихме кандидатурата ти. Ще се свържем с теб на посочения телефон.</p>
+  </div>
+</div>
+
+<script>
+  import { TURNSTILE_SITE_KEY } from 'astro:env/client';
+  import { AMOUNT, formatEur, formatMonths, validate, type Field, type FieldErrors } from '../lib/application';
+
+  type Turnstile = {
+    render: (el: HTMLElement, opts: Record<string, unknown>) => string;
+    reset: (id: string) => void;
+  };
+  declare global {
+    interface Window { turnstile?: Turnstile; }
+  }
+
+  const form = document.getElementById('apply-form') as HTMLFormElement;
+  const success = document.getElementById('apply-success') as HTMLElement;
+  const step1 = form.querySelector<HTMLFieldSetElement>('.step-1')!;
+  const step2 = form.querySelector<HTMLFieldSetElement>('.step-2')!;
+  const amount = form.elements.namedItem('amount') as HTMLInputElement;
+  const amountRange = document.getElementById('amount-range') as HTMLInputElement;
+  const term = form.elements.namedItem('term') as HTMLInputElement;
+  const termOutput = document.getElementById('term-output') as HTMLOutputElement;
+  const summary = document.getElementById('summary-text')!;
+  const alertBox = document.getElementById('form-alert')!;
+  const alertText = document.getElementById('form-alert-text')!;
+  const retryBtn = alertBox.querySelector<HTMLButtonElement>('[data-action="retry"]')!;
+  const submitBtn = form.querySelector<HTMLButtonElement>('[data-submit]')!;
+  const submitLabel = submitBtn.querySelector('[data-label]')!;
+  const status = document.getElementById('form-status')!;
+
+  const STEP1_FIELDS: Field[] = ['amount', 'term'];
+  const ALL_FIELDS: Field[] = ['amount', 'term', 'name', 'phone', 'email', 'consent'];
+  let showErrorsLive = false;
+
+  // --- Sliders -------------------------------------------------------------
+  const setFill = (r: HTMLInputElement) => {
+    const min = Number(r.min), max = Number(r.max);
+    r.style.setProperty('--pct', `${((Number(r.value) - min) / (max - min)) * 100}%`);
+  };
+  const clampAmount = (v: number) => {
+    if (!Number.isFinite(v)) return AMOUNT.initial;
+    const stepped = Math.round(v / AMOUNT.step) * AMOUNT.step;
+    return Math.min(AMOUNT.max, Math.max(AMOUNT.min, stepped));
+  };
+
+  amountRange.addEventListener('input', () => {
+    amount.value = amountRange.value;
+    amountRange.setAttribute('aria-valuetext', formatEur(Number(amountRange.value)));
+    setFill(amountRange);
+    setError('amount');
+  });
+  amount.addEventListener('input', () => {
+    const v = Number(amount.value);
+    if (v >= AMOUNT.min && v <= AMOUNT.max) {
+      amountRange.value = String(v);
+      setFill(amountRange);
+    }
+  });
+  amount.addEventListener('change', () => {
+    const v = clampAmount(Number(amount.value));
+    amount.value = String(v);
+    amountRange.value = String(v);
+    amountRange.setAttribute('aria-valuetext', formatEur(v));
+    setFill(amountRange);
+    setError('amount');
+  });
+  term.addEventListener('input', () => {
+    const text = formatMonths(Number(term.value));
+    termOutput.value = text;
+    term.setAttribute('aria-valuetext', text);
+    setFill(term);
+  });
+
+  // --- Validation ----------------------------------------------------------
+  const values = () => ({
+    amount: amount.value,
+    term: term.value,
+    name: (form.elements.namedItem('name') as HTMLInputElement).value,
+    phone: (form.elements.namedItem('phone') as HTMLInputElement).value,
+    email: (form.elements.namedItem('email') as HTMLInputElement).value,
+    consent: (form.elements.namedItem('consent') as HTMLInputElement).checked,
+  });
+
+  function setError(field: Field, message = '') {
+    const el = form.querySelector<HTMLElement>(`[data-error-for="${field}"]`);
+    const input = form.elements.namedItem(field) as HTMLInputElement | null;
+    if (el) el.textContent = message;
+    input?.setAttribute('aria-invalid', message ? 'true' : 'false');
+  }
+
+  function showErrors(errors: FieldErrors, fields: Field[]) {
+    for (const f of fields) setError(f, errors[f] ?? '');
+    const first = fields.find((f) => errors[f]);
+    if (first) (form.elements.namedItem(first) as HTMLInputElement).focus();
+    return !first;
+  }
+
+  function check(fields: Field[]) {
+    const r = validate(values());
+    return showErrors(r.ok ? {} : r.errors, fields);
+  }
+
+  // After the first submit, clear an error as soon as the field becomes valid.
+  // New errors only appear on submit: showing them on blur shifts the layout
+  // under the pointer and swallows the click on the next field.
+  for (const f of ['name', 'phone', 'email', 'consent'] as Field[]) {
+    const el = form.elements.namedItem(f) as HTMLInputElement;
+    el.addEventListener(f === 'consent' ? 'change' : 'input', () => {
+      if (!showErrorsLive || el.getAttribute('aria-invalid') !== 'true') return;
+      const r = validate(values());
+      if (r.ok || !r.errors[f]) setError(f);
+    });
+  }
+
+  // --- Steps ---------------------------------------------------------------
+  function goTo(step: 1 | 2) {
+    form.dataset.step = String(step);
+    step1.disabled = step !== 1;
+    step2.disabled = step !== 2;
+    hideAlert();
+    if (step === 2) {
+      summary.textContent = `${formatEur(Number(amount.value))} за ${formatMonths(Number(term.value))}`;
+      loadTurnstile();
+      (form.elements.namedItem('name') as HTMLInputElement).focus();
+      status.textContent = 'Стъпка 2 от 2: данни за контакт';
+    } else {
+      amountRange.focus();
+      status.textContent = 'Стъпка 1 от 2: сума и срок';
+    }
+  }
+
+  form.querySelector('[data-action="next"]')!.addEventListener('click', () => {
+    amount.dispatchEvent(new Event('change'));
+    if (check(STEP1_FIELDS)) goTo(2);
+  });
+  form.querySelector('[data-action="back"]')!.addEventListener('click', () => goTo(1));
+
+  // --- Turnstile -----------------------------------------------------------
+  let widgetId: string | undefined;
+  let token = '';
+  let tokenWaiters: ((t: string) => void)[] = [];
+
+  function loadTurnstile() {
+    if (document.getElementById('cf-turnstile-script')) return;
+    (window as any).onTurnstileLoad = () => {
+      widgetId = window.turnstile!.render(document.getElementById('turnstile')!, {
+        sitekey: TURNSTILE_SITE_KEY,
+        theme: 'dark',
+        language: 'bg',
+        appearance: 'interaction-only',
+        callback: (t: string) => {
+          token = t;
+          tokenWaiters.forEach((w) => w(t));
+          tokenWaiters = [];
+        },
+        'expired-callback': () => { token = ''; },
+        'error-callback': () => { token = ''; },
+      });
+    };
+    const s = document.createElement('script');
+    s.id = 'cf-turnstile-script';
+    s.src = 'https://challenges.cloudflare.com/turnstile/v0/api.js?render=explicit&onload=onTurnstileLoad';
+    s.async = true;
+    document.head.append(s);
+  }
+
+  function getToken(timeoutMs = 15000): Promise<string> {
+    if (token) return Promise.resolve(token);
+    return new Promise((resolve) => {
+      tokenWaiters.push(resolve);
+      setTimeout(() => resolve(token), timeoutMs);
+    });
+  }
+
+  function resetTurnstile() {
+    token = '';
+    if (widgetId && window.turnstile) window.turnstile.reset(widgetId);
+  }
+
+  // --- Submit --------------------------------------------------------------
+  function showAlert(message: string, canRetry: boolean) {
+    alertText.textContent = message;
+    retryBtn.hidden = !canRetry;
+    alertBox.hidden = false;
+    const reduce = matchMedia('(prefers-reduced-motion: reduce)').matches;
+    alertBox.scrollIntoView({ block: 'nearest', behavior: reduce ? 'auto' : 'smooth' });
+  }
+  function hideAlert() {
+    alertBox.hidden = true;
+    alertText.textContent = '';
+  }
+
+  function setSubmitting(on: boolean) {
+    submitBtn.disabled = on;
+    submitLabel.textContent = on ? 'Изпращане…' : 'Изпрати заявката';
+    form.setAttribute('aria-busy', String(on));
+    status.textContent = on ? 'Изпращаме заявката…' : '';
+  }
+
+  async function submit() {
+    hideAlert();
+    showErrorsLive = true;
+    if (!check(ALL_FIELDS)) return;
+
+    setSubmitting(true);
+    try {
+      const turnstileToken = await getToken();
+      if (!turnstileToken) {
+        showAlert('Проверката, че не си робот, не завърши. Опитай отново.', true);
+        resetTurnstile();
+        return;
+      }
+      const res = await fetch('/api/apply', {
+        method: 'POST',
+        headers: { 'content-type': 'application/json' },
+        body: JSON.stringify({
+          ...values(),
+          website: (form.elements.namedItem('website') as HTMLInputElement).value,
+          turnstileToken,
+        }),
+      });
+      const data = await res.json().catch(() => ({}));
+
+      if (res.ok && data.ok) {
+        form.hidden = true;
+        success.hidden = false;
+        success.focus();
+        return;
+      }
+      if (res.status === 422 && data.errors) {
+        showErrors(data.errors, ALL_FIELDS);
+        if (data.errors.amount || data.errors.term) goTo(1);
+        resetTurnstile();
+        return;
+      }
+      showAlert(data.message ?? 'Заявката не беше изпратена заради технически проблем. Опитай отново.', true);
+      resetTurnstile();
+    } catch {
+      showAlert('Няма връзка със сървъра. Провери интернет връзката си и опитай отново.', true);
+      resetTurnstile();
+    } finally {
+      setSubmitting(false);
+    }
+  }
+
+  form.addEventListener('submit', (e) => {
+    e.preventDefault();
+    if (form.dataset.step === '1') {
+      form.querySelector<HTMLButtonElement>('[data-action="next"]')!.click();
+      return;
+    }
+    submit();
+  });
+  retryBtn.addEventListener('click', () => submit());
+</script>
+
+<style>
+  .apply {
+    background: rgba(20, 20, 20, 0.92);
+    border: 1px solid var(--border-gold);
+    border-radius: var(--radius);
+    padding: 1.5rem 1.25rem;
+    box-shadow: 0 30px 60px -30px rgba(0, 0, 0, 0.9), inset 0 1px 0 rgba(232, 201, 122, 0.12);
+  }
+  @media (min-width: 640px) {
+    .apply { padding: 2rem; }
+  }
+
+  .apply-title {
+    font-size: 1.4rem;
+    color: var(--gold-2);
+    margin-bottom: 1.5rem;
+  }
+
+  .step { border: 0; padding: 0; margin: 0; min-width: 0; }
+  .step:disabled { display: none; }
+  .step > * + * { margin-top: 1.25rem; }
+
+  .field { display: grid; gap: 0.4rem; }
+  .field label { font-weight: 600; font-size: 0.95rem; }
+  .field-head {
+    display: flex;
+    align-items: baseline;
+    justify-content: space-between;
+    gap: 1rem;
+  }
+
+  /* The chosen amount is the focal point of the card */
+  .amount-box {
+    display: flex;
+    align-items: baseline;
+    gap: 0.3rem;
+    font-family: var(--font-serif);
+    color: var(--gold-2);
+  }
+  .amount-box input {
+    width: 5.5ch;
+    padding: 0;
+    background: none;
+    border: 0;
+    border-bottom: 1px dashed var(--border-gold);
+    color: inherit;
+    font: 600 clamp(1.75rem, 1.4rem + 1.5vw, 2.25rem) / 1 var(--font-serif);
+    text-align: right;
+    -moz-appearance: textfield;
+    appearance: textfield;
+  }
+  .amount-box input::-webkit-inner-spin-button,
+  .amount-box input::-webkit-outer-spin-button { -webkit-appearance: none; margin: 0; }
+  .amount-box input:focus-visible { outline-offset: 6px; }
+  .amount-box span { font-size: 1.5rem; }
+
+  .term-value {
+    font-family: var(--font-serif);
+    font-size: 1.35rem;
+    font-weight: 600;
+    color: var(--gold-2);
+  }
+
+  .range {
+    --track: 6px;
+    width: 100%;
+    height: 1.75rem;
+    margin: 0;
+    background: transparent;
+    -webkit-appearance: none;
+    appearance: none;
+    cursor: pointer;
+  }
+  .range::-webkit-slider-runnable-track {
+    height: var(--track);
+    border-radius: 999px;
+    background: linear-gradient(90deg, var(--gold-1), var(--gold-2)) 0 / var(--pct, 50%) 100% no-repeat, #2b2721;
+  }
+  .range::-moz-range-track {
+    height: var(--track);
+    border-radius: 999px;
+    background: #2b2721;
+  }
+  .range::-moz-range-progress {
+    height: var(--track);
+    border-radius: 999px;
+    background: var(--gold-gradient);
+  }
+  .range::-webkit-slider-thumb {
+    -webkit-appearance: none;
+    width: 1.35rem;
+    height: 1.35rem;
+    margin-top: calc((var(--track) - 1.35rem) / 2);
+    border-radius: 50%;
+    background: var(--gold-2);
+    border: 3px solid #14100a;
+    box-shadow: 0 0 0 1px var(--gold-1);
+  }
+  .range::-moz-range-thumb {
+    width: 1.1rem;
+    height: 1.1rem;
+    border-radius: 50%;
+    background: var(--gold-2);
+    border: 3px solid #14100a;
+    box-shadow: 0 0 0 1px var(--gold-1);
+  }
+  .range:focus-visible { outline-offset: 2px; }
+
+  .range-limits {
+    display: flex;
+    justify-content: space-between;
+    font-size: 0.8rem;
+    color: var(--text-muted);
+  }
+
+  .field input[type='text'],
+  .field input[type='tel'],
+  .field input[type='email'] {
+    width: 100%;
+    min-height: 3rem;
+    padding: 0.7rem 0.9rem;
+    background: var(--bg);
+    border: 1px solid #3a352c;
+    border-radius: 0.5rem;
+    color: var(--text);
+    font: inherit;
+  }
+  .field input::placeholder { color: #6f6a62; }
+  .field input:focus-visible { border-color: var(--gold-1); outline-offset: 1px; }
+  .field input[aria-invalid='true'] { border-color: var(--error); }
+
+  .field-check {
+    grid-template-columns: auto 1fr;
+    align-items: start;
+    column-gap: 0.75rem;
+  }
+  .field-check input {
+    width: 1.25rem;
+    height: 1.25rem;
+    margin: 0.15rem 0 0;
+    accent-color: var(--gold-1);
+  }
+  .field-check label { font-weight: 400; font-size: 0.875rem; line-height: 1.5; color: var(--text-muted); }
+  .field-check label a { color: var(--gold-2); }
+  .field-check .error { grid-column: 1 / -1; }
+
+  .error { color: var(--error); font-size: 0.85rem; }
+  .error:empty { display: none; }
+
+  .summary {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 1rem;
+    padding: 0.75rem 1rem;
+    border: 1px solid var(--border-gold);
+    border-radius: 0.5rem;
+    font-family: var(--font-serif);
+    font-size: 1.1rem;
+    color: var(--gold-2);
+  }
+  .link-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.3rem;
+    min-height: 2.75rem;
+    padding: 0 0.25rem;
+    background: none;
+    border: 0;
+    color: var(--text-muted);
+    font: 600 0.85rem var(--font-sans);
+    text-decoration: underline;
+    text-underline-offset: 3px;
+    cursor: pointer;
+  }
+  .link-btn:hover { color: var(--text); }
+  .link-btn :global(svg) { width: 1rem; height: 1rem; }
+
+  .hp {
+    position: absolute !important;
+    left: -10000px;
+    width: 1px;
+    height: 1px;
+    overflow: hidden;
+  }
+
+  .turnstile:empty { display: none; }
+
+  .btn-block { width: 100%; }
+
+  .form-alert {
+    margin-top: 1.25rem;
+    padding: 1rem;
+    border: 1px solid var(--error);
+    border-radius: 0.5rem;
+    background: rgba(240, 138, 126, 0.08);
+    display: grid;
+    gap: 0.75rem;
+    justify-items: start;
+  }
+  .form-alert p { color: var(--text); font-size: 0.9rem; }
+  .form-alert[hidden], .form-alert [hidden] { display: none; }
+  .form-alert .btn { min-height: 2.75rem; padding: 0.5rem 1.25rem; }
+
+  .secure {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.4rem;
+    margin-top: 1rem;
+    font-size: 0.8rem;
+    color: var(--text-muted);
+  }
+  .secure :global(svg) { width: 0.9rem; height: 0.9rem; color: var(--gold-1); }
+
+  .apply-success {
+    display: grid;
+    justify-items: center;
+    gap: 0.75rem;
+    padding: 1.5rem 0.5rem;
+    text-align: center;
+  }
+  .apply-success[hidden] { display: none; }
+  .apply-success:focus { outline: none; }
+  .apply-success :global(svg) { width: 3rem; height: 3rem; color: var(--gold-2); stroke-width: 1.25; }
+  .apply-success h2 { font-size: 1.5rem; color: var(--gold-2); }
+  .apply-success p { color: var(--text-muted); max-width: 30ch; }
+</style>
