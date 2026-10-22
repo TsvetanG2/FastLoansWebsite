@@ -16,7 +16,7 @@ import { nav, site } from '../config/site';
         <span class="visually-hidden">Меню</span>
       </button>
       <ul id="nav-list" class="nav-list">
-        {nav.map((item) => <li><a href={item.href}>{item.label}</a></li>)}
+        {nav.map((item) => <li><a href={item.href} data-section={item.href === '/' ? 'home' : item.href.split('#')[1]}>{item.label}</a></li>)}
         <li class="nav-phone-mobile">
           <a href={site.phone.href}>{site.phone.display}</a>
         </li>
@@ -49,9 +49,40 @@ import { nav, site } from '../config/site';
     });
   }
 
+  // Scroll-spy: mark the menu link of the section in view (home page only)
+  const spyLinks = [...document.querySelectorAll<HTMLAnchorElement>('.nav-list a[data-section]')];
+  const spySections = spyLinks
+    .map((l) => document.getElementById(l.dataset.section!))
+    .filter((s): s is HTMLElement => !!s);
+  if (location.pathname === '/' && spySections.length) {
+    let queued = false;
+    const update = () => {
+      queued = false;
+      const header = document.querySelector('header')?.getBoundingClientRect().height ?? 0;
+      // A section becomes active once its top passes 35% of the visible area
+      const line = header + (innerHeight - header) * 0.35;
+      let active = spySections[0].id;
+      for (const s of spySections) if (s.getBoundingClientRect().top <= line) active = s.id;
+      // At the very bottom the last section wins, even if it is short
+      if (innerHeight + scrollY >= document.documentElement.scrollHeight - 2) active = spySections[spySections.length - 1].id;
+      for (const l of spyLinks) {
+        if (l.dataset.section === active) l.setAttribute('aria-current', 'true');
+        else l.removeAttribute('aria-current');
+      }
+    };
+    const queue = () => {
+      if (!queued) {
+        queued = true;
+        requestAnimationFrame(update);
+      }
+    };
+    addEventListener('scroll', queue, { passive: true });
+    addEventListener('resize', queue);
+    update();
+  }
+
   // Same-page links (menu, footer, table of contents) scroll smoothly without leaving
   // "#about" in the address bar. Without JS they still work as normal anchors.
-  const reduce = () => matchMedia('(prefers-reduced-motion: reduce)').matches;
   const cleanUrl = () => history.replaceState(history.state, '', location.pathname + location.search);
 
   // Arrived from another page via "/#about": the browser has already scrolled — just tidy the URL
@@ -66,17 +97,51 @@ import { nav, site } from '../config/site';
     const target = url.hash ? document.getElementById(decodeURIComponent(url.hash.slice(1))) : null;
     if (url.hash && !target) return;
     e.preventDefault();
-    const behavior = reduce() ? 'auto' : 'smooth';
     if (target) {
-      target.scrollIntoView({ behavior });
+      // Stop just below the sticky header (html's scroll-padding-top)
+      const pad = parseFloat(getComputedStyle(document.documentElement).scrollPaddingTop) || 0;
+      glideTo(target.getBoundingClientRect().top + scrollY - pad);
       // Move focus for keyboard and screen-reader users
       if (!target.matches('a, button, input, select, textarea, [tabindex]')) target.setAttribute('tabindex', '-1');
       target.focus({ preventScroll: true });
     } else {
-      scrollTo({ top: 0, behavior });
+      glideTo(0);
     }
     if (location.hash) cleanUrl();
   });
+
+  // A gentle glide: 0.4–0.9 s depending on distance, ease-in-out. It runs even with
+  // "reduced motion" because it answers the user's own click and is short and calm;
+  // any wheel, touch or key input stops it at once.
+  let glide = 0;
+  function glideTo(y: number) {
+    const max = document.documentElement.scrollHeight - innerHeight;
+    const to = Math.max(0, Math.min(max, Math.round(y)));
+    const from = scrollY;
+    const distance = to - from;
+    cancelAnimationFrame(glide);
+    if (Math.abs(distance) < 2) return;
+    const duration = Math.min(900, 400 + Math.abs(distance) * 0.15);
+    const ease = (t: number) => (t < 0.5 ? 4 * t * t * t : 1 - Math.pow(-2 * t + 2, 3) / 2);
+    const start = performance.now();
+    const stop = () => {
+      cancelAnimationFrame(glide);
+      removeEventListener('wheel', stop);
+      removeEventListener('touchstart', stop);
+      removeEventListener('keydown', stop);
+    };
+    addEventListener('wheel', stop, { passive: true });
+    addEventListener('touchstart', stop, { passive: true });
+    addEventListener('keydown', stop);
+    const frame = (now: number) => {
+      const t = Math.min(1, (now - start) / duration);
+      // 'instant' so the CSS scroll-behavior: smooth does not fight the per-frame steps
+      scrollTo({ top: from + distance * ease(t), behavior: 'instant' });
+      if (t < 1) glide = requestAnimationFrame(frame);
+      else stop();
+    };
+    glide = requestAnimationFrame(frame);
+  }
 </script>
 
 <style>
@@ -142,6 +207,23 @@ import { nav, site } from '../config/site';
     font-weight: 600;
   }
   .nav-list a:hover { color: var(--gold-2); }
+
+  /* Active section marker: a short gold bar (vertical on mobile, underline on desktop) */
+  .nav-list a { position: relative; }
+  .nav-list a::after {
+    content: '';
+    position: absolute;
+    left: -0.85rem;
+    top: 0.85rem;
+    bottom: 0.85rem;
+    width: 2px;
+    border-radius: 2px;
+    background: var(--gold-gradient);
+    transform: scaleY(0);
+    transition: transform 0.35s cubic-bezier(0.2, 0.7, 0.2, 1);
+  }
+  .nav-list a[aria-current]::after { transform: none; }
+  .nav-list a[aria-current] { color: var(--gold-2); }
   .nav-phone-mobile {
     margin-top: 0.5rem;
     padding-top: 0.75rem;
@@ -163,6 +245,15 @@ import { nav, site } from '../config/site';
       background: none;
     }
     .nav-list a { padding: 0.5rem 0; font-size: 0.95rem; }
+    .nav-list a::after {
+      left: 0;
+      right: 0;
+      top: auto;
+      bottom: 0.1rem;
+      width: auto;
+      height: 2px;
+      transform: scaleX(0);
+    }
     .nav-phone-mobile { display: none; }
     .nav { margin-right: auto; }
     .brand { margin-right: 0; }
