@@ -44,8 +44,7 @@ with sync_playwright() as p:
         ok(f'[{w}] Vercel Analytics script requested same-origin', page.evaluate("performance.getEntriesByType('resource').some(e => e.name.endsWith('/_vercel/insights/script.js'))"))
         ok(f'[{w}] hero image loads', page.evaluate("document.querySelector('.hero-bg').naturalWidth > 0"))
         # Scripts run: the form moves to step 2, which loads Turnstile from challenges.cloudflare.com
-        page.fill('#firstName', 'Иван'); page.fill('#lastName', 'Петров'); page.fill('#phone', '888123456'); page.fill('#email', 'a@b.bg')
-        page.locator('fieldset:not([disabled]) [data-action="next"]').click()
+        page.locator('fieldset:not([disabled]) [data-action="next"]').click()  # step 1: sliders
         wait_until(page, "document.getElementById('apply-form').dataset.step === '2'")
         wait_until(page, '!!window.turnstile')
         # The widget iframe lives in a closed shadow root: check the frame and the issued token instead

@@ -212,3 +212,11 @@ img, svg { display: block; max-width: 100%; }
   .prose dl { grid-template-columns: max-content 1fr; column-gap: 1.5rem; }
   .prose dt { padding-top: 0.15rem; }
 }
+
+/* iOS Safari zooms the whole page when a focused form control has a font-size under 16px
+   (sliders and checkboxes default to ~13px). Keep every control at 16px or more. */
+input,
+select,
+textarea {
+  font-size: max(16px, 1em);
+}

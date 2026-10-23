@@ -112,9 +112,10 @@ export type FieldErrors = Partial<Record<Field, string>>;
 
 /** Fields shown on each step of the form, in order. */
 export const STEPS: Field[][] = [
+  ['amount', 'term'],
   ['firstName', 'lastName', 'phone', 'email'],
   ['purpose', 'currentAddress', 'idAddress', 'city', 'housing', 'occupation'],
-  ['amount', 'term', 'consent'],
+  ['consent'],
 ];
 export const FIELDS: Field[] = STEPS.flat();
 

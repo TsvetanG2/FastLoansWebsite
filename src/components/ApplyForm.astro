@@ -5,7 +5,7 @@ import { CITIES } from '../lib/cities';
 import { agentStatement } from '../data/company';
 
 const pct = (v: number, min: number, max: number) => `${((v - min) / (max - min)) * 100}%`;
-const STEP_TITLES = ['Лични данни', 'Адрес и работа', 'Сума и срок'];
+const STEP_TITLES = ['Сума и срок', 'Лични данни', 'Адрес и работа', 'Потвърждение'];
 ---
 <div class="apply" id="apply">
   <form class="apply-form" id="apply-form" novalidate data-step="1">
@@ -13,7 +13,7 @@ const STEP_TITLES = ['Лични данни', 'Адрес и работа', 'С�
 
     <div class="progress" aria-hidden="true">
       <p class="progress-label">
-        Стъпка <span data-step-num>1</span> от 3: <span data-step-title>{STEP_TITLES[0]}</span>
+        Стъпка <span data-step-num>1</span> от {STEP_TITLES.length}: <span data-step-title>{STEP_TITLES[0]}</span>
       </p>
       <ol class="progress-bar">
         {STEP_TITLES.map(() => <li></li>)}
@@ -21,9 +21,69 @@ const STEP_TITLES = ['Лични данни', 'Адрес и работа', 'С�
     </div>
 
     <div class="steps">
-    <!-- Step 1: personal details -->
+    <!-- Step 1: amount and term (quick and engaging first) -->
     <fieldset class="step" data-step-index="1">
-      <legend class="visually-hidden">Стъпка 1 от 3: {STEP_TITLES[0]}</legend>
+      <legend class="visually-hidden">Стъпка 1 от {STEP_TITLES.length}: {STEP_TITLES[0]}</legend>
+
+      <div class="field">
+        <div class="field-head">
+          <label for="amount">Желана сума</label>
+          <!-- Display only: the amount is chosen with the slider -->
+          <output id="amount-output" for="amount" class="amount-value">{formatEur(AMOUNT.initial)}</output>
+        </div>
+        <input
+          id="amount"
+          name="amount"
+          class="range"
+          type="range"
+          min={AMOUNT.min}
+          max={AMOUNT.max}
+          step={AMOUNT.step}
+          value={AMOUNT.initial}
+          style={`--pct:${pct(AMOUNT.initial, AMOUNT.min, AMOUNT.max)}`}
+          aria-valuetext={formatEur(AMOUNT.initial)}
+          aria-describedby="amount-error"
+        />
+        <div class="range-limits" aria-hidden="true">
+          <span>{formatEur(AMOUNT.min)}</span><span>{formatEur(AMOUNT.max)}</span>
+        </div>
+        <p class="error" id="amount-error" data-error-for="amount"></p>
+      </div>
+
+      <div class="field">
+        <div class="field-head">
+          <label for="term">Срок на изплащане</label>
+          <output id="term-output" for="term" class="term-value">{formatMonths(TERM.initial)}</output>
+        </div>
+        <input
+          id="term"
+          name="term"
+          class="range"
+          type="range"
+          min={TERM.min}
+          max={TERM.max}
+          step={TERM.step}
+          value={TERM.initial}
+          style={`--pct:${pct(TERM.initial, TERM.min, TERM.max)}`}
+          aria-valuetext={formatMonths(TERM.initial)}
+          aria-describedby="term-error"
+        />
+        <div class="range-limits" aria-hidden="true">
+          <span>{formatMonths(TERM.min)}</span><span>{formatMonths(TERM.max)}</span>
+        </div>
+        <p class="error" id="term-error" data-error-for="term"></p>
+      </div>
+
+      <div class="nav">
+        <button class="btn btn-gold" type="button" data-action="next">
+          Продължете <ArrowRight aria-hidden="true" />
+        </button>
+      </div>
+    </fieldset>
+
+    <!-- Step 2: personal details -->
+    <fieldset class="step" data-step-index="2" disabled>
+      <legend class="visually-hidden">Стъпка 2 от {STEP_TITLES.length}: {STEP_TITLES[1]}</legend>
 
       <div class="row">
         <div class="field">
@@ -55,15 +115,16 @@ const STEP_TITLES = ['Лични данни', 'Адрес и работа', 'С�
       </div>
 
       <div class="nav">
+        <button type="button" class="link-btn" data-action="back"><ArrowLeft aria-hidden="true" /> Назад</button>
         <button class="btn btn-gold" type="button" data-action="next">
           Продължете <ArrowRight aria-hidden="true" />
         </button>
       </div>
     </fieldset>
 
-    <!-- Step 2: purpose, address, housing, work -->
-    <fieldset class="step" data-step-index="2" disabled>
-      <legend class="visually-hidden">Стъпка 2 от 3: {STEP_TITLES[1]}</legend>
+    <!-- Step 3: purpose, address, housing, work -->
+    <fieldset class="step" data-step-index="3" disabled>
+      <legend class="visually-hidden">Стъпка 3 от {STEP_TITLES.length}: {STEP_TITLES[2]}</legend>
 
       <div class="field">
         <label for="purpose">Причина за финансиране</label>
@@ -127,69 +188,9 @@ const STEP_TITLES = ['Лични данни', 'Адрес и работа', 'С�
       </div>
     </fieldset>
 
-    <!-- Step 3: amount, term, city, consent -->
-    <fieldset class="step" data-step-index="3" disabled>
-      <legend class="visually-hidden">Стъпка 3 от 3: {STEP_TITLES[2]}</legend>
-
-      <div class="field">
-        <div class="field-head">
-          <label for="amount-range">Желана сума</label>
-          <div class="amount-box">
-            <label for="amount" class="visually-hidden">Желана сума в евро</label>
-            <input
-              id="amount"
-              name="amount"
-              type="number"
-              inputmode="numeric"
-              min={AMOUNT.min}
-              max={AMOUNT.max}
-              step={AMOUNT.step}
-              value={AMOUNT.initial}
-              aria-describedby="amount-error"
-            />
-            <span aria-hidden="true">€</span>
-          </div>
-        </div>
-        <input
-          id="amount-range"
-          class="range"
-          type="range"
-          min={AMOUNT.min}
-          max={AMOUNT.max}
-          step={AMOUNT.step}
-          value={AMOUNT.initial}
-          style={`--pct:${pct(AMOUNT.initial, AMOUNT.min, AMOUNT.max)}`}
-          aria-valuetext={formatEur(AMOUNT.initial)}
-        />
-        <div class="range-limits" aria-hidden="true">
-          <span>{formatEur(AMOUNT.min)}</span><span>{formatEur(AMOUNT.max)}</span>
-        </div>
-        <p class="error" id="amount-error" data-error-for="amount"></p>
-      </div>
-
-      <div class="field">
-        <div class="field-head">
-          <label for="term">Срок на изплащане</label>
-          <output id="term-output" for="term" class="term-value">{formatMonths(TERM.initial)}</output>
-        </div>
-        <input
-          id="term"
-          name="term"
-          class="range"
-          type="range"
-          min={TERM.min}
-          max={TERM.max}
-          step={TERM.step}
-          value={TERM.initial}
-          style={`--pct:${pct(TERM.initial, TERM.min, TERM.max)}`}
-          aria-valuetext={formatMonths(TERM.initial)}
-          aria-describedby="term-error"
-        />
-        <div class="range-limits" aria-hidden="true">
-          <span>{formatMonths(TERM.min)}</span><span>{formatMonths(TERM.max)}</span>
-        </div>
-        <p class="error" id="term-error" data-error-for="term"></p>
-      </div>
+    <!-- Step 4: consent and submit -->
+    <fieldset class="step" data-step-index="4" disabled>
+      <legend class="visually-hidden">Стъпка 4 от {STEP_TITLES.length}: {STEP_TITLES[3]}</legend>
 
       <div class="field field-check">
         <input id="consent" name="consent" type="checkbox" required aria-describedby="consent-error" />
@@ -246,7 +247,7 @@ const STEP_TITLES = ['Лични данни', 'Адрес и работа', 'С�
 
 <script>
   import { PUBLIC_TURNSTILE_SITE_KEY } from 'astro:env/client';
-  import { AMOUNT, FIELDS, STEPS, formatEur, formatMonths, validate, type Field, type FieldErrors } from '../lib/application';
+  import { FIELDS, STEPS, formatEur, formatMonths, validate, type Field, type FieldErrors } from '../lib/application';
 
   type Turnstile = {
     render: (el: HTMLElement, opts: Record<string, unknown>) => string;
@@ -256,7 +257,7 @@ const STEP_TITLES = ['Лични данни', 'Адрес и работа', 'С�
     interface Window { turnstile?: Turnstile; }
   }
 
-  const STEP_TITLES = ['Лични данни', 'Адрес и работа', 'Сума и срок'];
+  const STEP_TITLES = ['Сума и срок', 'Лични данни', 'Адрес и работа', 'Потвърждение'];
   const LAST = STEPS.length;
 
   const form = document.getElementById('apply-form') as HTMLFormElement;
@@ -265,8 +266,8 @@ const STEP_TITLES = ['Лични данни', 'Адрес и работа', 'С�
   const stepNum = form.querySelector('[data-step-num]')!;
   const stepTitle = form.querySelector('[data-step-title]')!;
   const bars = [...form.querySelectorAll<HTMLLIElement>('.progress-bar li')];
-  const amount = form.elements.namedItem('amount') as HTMLInputElement;
-  const amountRange = document.getElementById('amount-range') as HTMLInputElement;
+  const amount = form.elements.namedItem('amount') as HTMLInputElement; // the slider
+  const amountOutput = document.getElementById('amount-output') as HTMLOutputElement;
   const term = form.elements.namedItem('term') as HTMLInputElement;
   const termOutput = document.getElementById('term-output') as HTMLOutputElement;
   const alertBox = document.getElementById('form-alert')!;
@@ -284,31 +285,12 @@ const STEP_TITLES = ['Лични данни', 'Адрес и работа', 'С�
     const min = Number(r.min), max = Number(r.max);
     r.style.setProperty('--pct', `${((Number(r.value) - min) / (max - min)) * 100}%`);
   };
-  const clampAmount = (v: number) => {
-    if (!Number.isFinite(v)) return AMOUNT.initial;
-    const stepped = Math.round(v / AMOUNT.step) * AMOUNT.step;
-    return Math.min(AMOUNT.max, Math.max(AMOUNT.min, stepped));
-  };
 
-  amountRange.addEventListener('input', () => {
-    amount.value = amountRange.value;
-    amountRange.setAttribute('aria-valuetext', formatEur(Number(amountRange.value)));
-    setFill(amountRange);
-    setError('amount');
-  });
   amount.addEventListener('input', () => {
-    const v = Number(amount.value);
-    if (v >= AMOUNT.min && v <= AMOUNT.max) {
-      amountRange.value = String(v);
-      setFill(amountRange);
-    }
-  });
-  amount.addEventListener('change', () => {
-    const v = clampAmount(Number(amount.value));
-    amount.value = String(v);
-    amountRange.value = String(v);
-    amountRange.setAttribute('aria-valuetext', formatEur(v));
-    setFill(amountRange);
+    const text = formatEur(Number(amount.value));
+    amountOutput.value = text;
+    amount.setAttribute('aria-valuetext', text);
+    setFill(amount);
     setError('amount');
   });
   term.addEventListener('input', () => {
@@ -431,12 +413,16 @@ const STEP_TITLES = ['Лични данни', 'Адрес и работа', 'С�
   }
 
   // Each step's bar fills with the share of its fields that are valid.
-  // Amount and term start with valid values, so they count once the step is reached.
+  // Amount and term start with valid values, so they count only once the visitor has moved the
+  // slider or gone past the step — otherwise the first bar would be full before anyone touched it.
+  const touched = new Set<Field>();
+  amount.addEventListener('input', () => touched.add('amount'));
+  term.addEventListener('input', () => touched.add('term'));
   function updateProgress() {
     const r = validate(values());
     const errors: FieldErrors = r.ok ? {} : r.errors;
     bars.forEach((bar, i) => {
-      const fields = STEPS[i].filter((f) => (f !== 'amount' && f !== 'term') || maxReached > i);
+      const fields = STEPS[i].filter((f) => (f !== 'amount' && f !== 'term') || touched.has(f) || maxReached > i + 1);
       const done = fields.filter((f) => !errors[f]).length;
       bar.style.setProperty('--p', String(done / STEPS[i].length));
     });
@@ -471,7 +457,6 @@ const STEP_TITLES = ['Лични данни', 'Адрес и работа', 'С�
 
   function next() {
     if (animating) return;
-    if (current() === LAST) amount.dispatchEvent(new Event('change'));
     if (check(STEPS[current() - 1])) goTo(current() + 1);
   }
 
@@ -544,7 +529,6 @@ const STEP_TITLES = ['Лични данни', 'Адрес и работа', 'С�
 
   async function submit() {
     hideAlert();
-    amount.dispatchEvent(new Event('change'));
     // Re-check every step; jump back to the first one with a problem
     const r = validate(values());
     if (!r.ok) {
@@ -609,15 +593,26 @@ const STEP_TITLES = ['Лични данни', 'Адрес и работа', 'С�
     }
   }
 
+  // Until the consent box is ticked the submit button looks inactive (dark, gold outline). It stays
+  // clickable and focusable: a click shows the consent error instead of doing nothing silently.
+  const consentBox = input('consent') as HTMLInputElement;
+  const syncSubmit = () => {
+    const off = !consentBox.checked;
+    submitBtn.classList.toggle('is-inactive', off);
+    submitBtn.setAttribute('aria-disabled', String(off));
+  };
+  consentBox.addEventListener('change', syncSubmit);
+  syncSubmit();
+
   form.addEventListener('submit', (e) => {
     e.preventDefault();
     if (current() < LAST) next();
     else submit();
   });
 
-  // Enter in a field = "Продължете" (steps 1–2) or "Изпратете заявката" (step 3).
+  // Enter in a field = "Продължете" (steps 1–3) or "Изпратете заявката" (step 4).
   // The browser's own Enter-to-submit does not fire here: the form's first submit button
-  // sits in the not-yet-active step 3 and is disabled. Selects keep their own Enter
+  // sits in the not-yet-active last step and is disabled. Selects keep their own Enter
   // (opening the list); Enter on buttons and links keeps its normal meaning.
   form.addEventListener('keydown', (e) => {
     if (e.key !== 'Enter' || e.isComposing || e.shiftKey || e.altKey || e.ctrlKey || e.metaKey) return;
@@ -625,7 +620,6 @@ const STEP_TITLES = ['Лични данни', 'Адрес и работа', 'С�
     if (!(el instanceof HTMLInputElement) || el.type === 'hidden') return;
     e.preventDefault();
     if (animating || submitBtn.disabled) return;
-    if (el.name === 'amount') amount.dispatchEvent(new Event('change'));
     if (current() < LAST) next();
     else submit();
   });
@@ -659,7 +653,7 @@ const STEP_TITLES = ['Лични данни', 'Адрес и работа', 'С�
     margin: 0.5rem 0 0;
     padding: 0;
     display: grid;
-    grid-template-columns: repeat(3, 1fr);
+    grid-template-columns: repeat(4, 1fr);
     gap: 0.35rem;
   }
   .progress-bar li { position: relative; height: 3px; border-radius: 999px; background: #2b2721; overflow: hidden; }
@@ -704,29 +698,11 @@ const STEP_TITLES = ['Лични данни', 'Адрес и работа', 'С�
   }
 
   /* The chosen amount is the focal point of the last step */
-  .amount-box {
-    display: flex;
-    align-items: baseline;
-    gap: 0.3rem;
-    font-family: var(--font-serif);
-    color: var(--gold-2);
-  }
-  .amount-box input {
-    width: 5.5ch;
-    padding: 0;
-    background: none;
-    border: 0;
-    border-bottom: 1px dashed var(--border-gold);
-    color: inherit;
+  .amount-value {
     font: 600 clamp(1.75rem, 1.4rem + 1.5vw, 2.25rem) / 1 var(--font-serif);
-    text-align: right;
-    -moz-appearance: textfield;
-    appearance: textfield;
+    color: var(--gold-2);
+    white-space: nowrap;
   }
-  .amount-box input::-webkit-inner-spin-button,
-  .amount-box input::-webkit-outer-spin-button { -webkit-appearance: none; margin: 0; }
-  .amount-box input:focus-visible { outline-offset: 6px; }
-  .amount-box span { font-size: 1.5rem; }
 
   .term-value {
     font-family: var(--font-serif);
@@ -892,7 +868,16 @@ const STEP_TITLES = ['Лични данни', 'Адрес и работа', 'С�
   .link-btn:hover { color: var(--text); }
   .link-btn :global(svg) { width: 1rem; height: 1rem; }
 
-  .disclaimer { font-size: 0.8rem; line-height: 1.5; color: var(--text-muted); text-align: center; }
+  [data-submit] { transition: background 0.25s ease, color 0.25s ease, box-shadow 0.25s ease, border-color 0.25s ease; }
+  [data-submit].is-inactive {
+    background: var(--bg);
+    color: var(--text-muted);
+    /* inset outline instead of a border: same size as the active button, no layout jump */
+    box-shadow: inset 0 0 0 1px var(--gold-1);
+    filter: none;
+  }
+  [data-submit].is-inactive:hover { background: #14100a; }
+    .disclaimer { font-size: 0.8rem; line-height: 1.5; color: var(--text-muted); text-align: center; }
 
   .hp {
     position: absolute !important;

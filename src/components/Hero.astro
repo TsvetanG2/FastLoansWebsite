@@ -24,9 +24,9 @@ import heroBg from '../../assets/background.webp';
     <div class="hero-copy">
       <img class="hero-logo" src="/logo.svg" alt="Royal Finance" width="220" height="224" />
       <h1 id="hero-title">Бързо финансиране</h1>
-      <p class="tagline">Твоите планове заслужават подкрепа</p>
+      <p class="tagline">Вашите планове заслужават подкрепа</p>
       <p class="lead">
-        Бърз кредит, кандидатствай онлайн. Кредит от 500 до 5&nbsp;000&nbsp;€ със срок от 3 до 60 месеца.
+        Бърз кредит, кандидатствайте онлайн. Кредит от 500 до 5&nbsp;000&nbsp;€ със срок от 3 до 60 месеца.
         Получете отговор до 10 минути.
       </p>
     </div>
@@ -44,12 +44,16 @@ import heroBg from '../../assets/background.webp';
     padding-block: calc(var(--header-h) + 2.5rem) 3.5rem;
     background: var(--bg);
   }
+  /* The photo and its overlay have a fixed height, pinned to the top of the section. When a long
+     form step makes the section taller, the extra space continues in plain black below the fade
+     instead of stretching (zooming) the photo. */
+  .hero { --hero-bg-h: 100svh; }
   .hero-bg {
     position: absolute;
-    inset: 0;
+    inset: 0 0 auto;
     z-index: -2;
     width: 100%;
-    height: 100%;
+    height: var(--hero-bg-h);
     object-fit: cover;
     object-position: 40% 60%;
   }
@@ -57,7 +61,8 @@ import heroBg from '../../assets/background.webp';
   .hero::before {
     content: '';
     position: absolute;
-    inset: 0;
+    inset: 0 0 auto;
+    height: var(--hero-bg-h);
     z-index: -1;
     background:
       linear-gradient(180deg, rgba(10, 10, 10, 0.55) 0%, rgba(10, 10, 10, 0.35) 45%, var(--bg) 100%),
@@ -95,9 +100,10 @@ import heroBg from '../../assets/background.webp';
     max-width: 44ch;
   }
   @media (min-width: 1024px) {
-    .hero { padding-block: calc(var(--header-h) + 4rem) 5rem; }
-    /* Tall enough for the longest form step, so the section keeps one height while
-       the card grows and shrinks between steps (it is pinned to the top). */
+    /* --hero-bg-h = the section's height with the grid at its min-height (header + 4rem + 56rem + 5rem) */
+    .hero { padding-block: calc(var(--header-h) + 4rem) 5rem; --hero-bg-h: calc(var(--header-h) + 65rem); }
+    /* Tall enough for the longest form step, so the section keeps one height while the card
+       grows and shrinks between steps (it is pinned to the top). */
     .hero-grid {
       grid-template-columns: 1fr minmax(26rem, 30rem);
       gap: 4.5rem;

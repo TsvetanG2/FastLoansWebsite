@@ -14,9 +14,10 @@ results = []
 ip_counter = [0]
 
 STEP_FIELDS = [
+    ['amount', 'term'],
     ['firstName', 'lastName', 'phone', 'email'],
     ['purpose', 'currentAddress', 'idAddress', 'city', 'housing', 'occupation'],
-    ['amount', 'term', 'consent'],
+    ['consent'],
 ]
 VALID_API = {
     'firstName': 'Иван', 'lastName': 'Петров', 'phone': '0888123456', 'email': 'a@b.bg',
@@ -83,14 +84,14 @@ def bar(page, i):
     return float(page.evaluate(f"getComputedStyle(document.querySelectorAll('.progress-bar li')[{i}]).getPropertyValue('--p') || '0'"))
 
 
-def fill_step1(page, email='delivered+applicant@resend.dev'):
+def fill_personal(page, email='delivered+applicant@resend.dev'):
     page.fill('#firstName', 'Иван')
     page.fill('#lastName', 'Петров')
     page.fill('#phone', '0888 123 456')
     page.fill('#email', email)
 
 
-def fill_step2(page):
+def fill_address(page):
     page.select_option('#purpose', 'refinance')
     page.fill('#currentAddress', 'ж.к. Младост 1, бл. 79')  # no "ул." needed
     page.fill('#idAddress', 'ул. Витоша 5')
@@ -99,18 +100,18 @@ def fill_step2(page):
     page.fill('#occupation', 'Шофьор')
 
 
-def fill_step3(page):
+def fill_all(page, **kw):
+    next_btn(page)  # step 1: amount and term keep their defaults
+    fill_personal(page, **kw); next_btn(page)
+    fill_address(page); next_btn(page)
     page.check('#consent')
 
 
-def fill_all(page, **kw):
-    fill_step1(page, **kw); next_btn(page)
-    fill_step2(page); next_btn(page)
-    fill_step3(page)
-
-
 def submit(page):
-    page.click('[data-submit]')
+    # aria-disabled (no consent yet) still lets people click to see what is missing; Playwright treats
+    # aria-disabled as not clickable, so force the click in that case
+    inactive = page.get_attribute('[data-submit]', 'aria-disabled') == 'true'
+    page.locator('[data-submit]').click(force=inactive)
 
 
 with sync_playwright() as p:
@@ -127,46 +128,64 @@ with sync_playwright() as p:
         ok(f'[{label}] hero has no CTA button', page.locator('.hero-copy a.btn').count() == 0)
         ok(f'[{label}] phone shows +359 prefix', page.text_content('.phone-prefix').strip() == '+359')
         h1 = page.locator('#apply-form').bounding_box()['height']
+        hero_h = page.evaluate("document.querySelector('.hero').offsetHeight")
         ok(f'[{label}] city list has 257 towns', page.locator('#city option:not([value=""])').count() == 257)
 
-        # Progress fills per valid field
+        # Step 1: amount and term (sliders only)
         ok(f'[{label}] bars start empty', bar(page, 0) == 0 and bar(page, 1) == 0 and bar(page, 2) == 0)
-        page.fill('#firstName', 'Иван'); page.locator('#lastName').click()
-        ok(f'[{label}] bar 1 = 1/4 after first name', abs(bar(page, 0) - 0.25) < 0.01, str(bar(page, 0)))
-        page.fill('#firstName', '')
-        ok(f'[{label}] bar 1 back to 0 when cleared', bar(page, 0) == 0)
-
-        # Step 1 errors
         page.locator('#apply').screenshot(path=f'{OUT}/{label}-step1.png')
+        ok(f'[{label}] amount: slider only, no typing', page.get_attribute('#amount', 'type') == 'range' and page.locator('#apply-form input[type=number]').count() == 0 and page.evaluate("document.getElementById('amount-output').tagName") == 'OUTPUT')
+        page.locator('#amount').focus(); page.keyboard.press('ArrowRight')
+        ok(f'[{label}] amount: arrow key moves by 50 €', page.input_value('#amount') == '1550' and '1 550 €' in page.text_content('#amount-output'), page.text_content('#amount-output'))
+        ok(f'[{label}] bar 1 = 1/2 after moving the amount', abs(bar(page, 0) - 0.5) < 0.01, str(bar(page, 0)))
+        page.locator('#amount').fill('5000')
+        ok(f'[{label}] amount: slider sets the shown value', '5 000 €' in page.text_content('#amount-output') and page.get_attribute('#amount', 'aria-valuetext') == '5 000 €')
+        page.locator('#term').fill('24')
+        ok(f'[{label}] term output updates', '24 месеца' in page.text_content('#term-output'))
+        ok(f'[{label}] bar 1 full after both sliders', abs(bar(page, 0) - 1) < 0.01)
         next_btn(page)
-        ok(f'[{label}] step 1 blocked when empty', step(page) == '1')
-        for f in STEP_FIELDS[0]:
+        ok(f'[{label}] step 1 -> step 2', step(page) == '2')
+        page.wait_for_timeout(500)
+        h2 = page.locator('#apply-form').bounding_box()['height']
+
+        # Step 2: personal details
+        ok(f'[{label}] focus on firstName', page.evaluate('document.activeElement.id') == 'firstName')
+        page.fill('#firstName', 'Иван'); page.locator('#lastName').click()
+        ok(f'[{label}] bar 2 = 1/4 after first name', abs(bar(page, 1) - 0.25) < 0.01, str(bar(page, 1)))
+        page.fill('#firstName', '')
+        ok(f'[{label}] bar 2 back to 0 when cleared', bar(page, 1) == 0)
+        next_btn(page)
+        ok(f'[{label}] step 2 blocked when empty', step(page) == '2')
+        for f in STEP_FIELDS[1]:
             msg = (page.text_content(f'#{f}-error') or '').strip()
             ok(f'[{label}] empty {f} shows error', msg != '', msg)
             ok(f'[{label}] {f} has aria-invalid', page.get_attribute(f'#{f}', 'aria-invalid') == 'true')
         ok(f'[{label}] focus on first invalid (firstName)', page.evaluate('document.activeElement.id') == 'firstName')
-        page.locator('#apply').screenshot(path=f'{OUT}/{label}-step1-errors.png')
-
-        fill_step1(page)
+        page.locator('#apply').screenshot(path=f'{OUT}/{label}-step2-errors.png')
+        fill_personal(page)
         for f, bad, expected in [('firstName', 'И', 'Въведете името си'), ('phone', '12345', 'Въведете телефон след +359'), ('email', 'ivan@', 'Въведете валиден имейл')]:
             good = page.input_value(f'#{f}')
             page.fill(f'#{f}', bad)
             next_btn(page)
             msg = page.text_content(f'#{f}-error') or ''
-            ok(f'[{label}] invalid {f} -> "{expected}"', expected in msg and step(page) == '1', msg)
+            ok(f'[{label}] invalid {f} -> "{expected}"', expected in msg and step(page) == '2', msg)
             page.fill(f'#{f}', good)
             ok(f'[{label}] {f} error clears when fixed', (page.text_content(f'#{f}-error') or '') == '')
-        ok(f'[{label}] bar 1 full when step valid', abs(bar(page, 0) - 1) < 0.01)
-        next_btn(page)
-        ok(f'[{label}] step 1 -> step 2', step(page) == '2')
+        ok(f'[{label}] bar 2 full when step valid', abs(bar(page, 1) - 1) < 0.01)
+        back_btn(page)
+        ok(f'[{label}] back to step 1 keeps the amount', step(page) == '1' and page.input_value('#amount') == '5000')
+        next_btn(page); next_btn(page)
+        ok(f'[{label}] step 2 -> step 3', step(page) == '3')
         page.wait_for_timeout(500)
-        h2 = page.locator('#apply-form').bounding_box()['height']
+        h3 = page.locator('#apply-form').bounding_box()['height']
+        ok(f'[{label}] form height follows the step', h3 > h2 and h3 > h1, f'{h1} {h2} {h3}')
+        ok(f'[{label}] inactive steps not rendered', page.evaluate("[...document.querySelectorAll('.step:disabled')].every(s => getComputedStyle(s).display === 'none')"))
         ok(f'[{label}] city is right after idAddress', page.evaluate("document.getElementById('idAddress').closest('.field').nextElementSibling.querySelector('#city') !== null"))
 
-        # Step 2 errors
+        # Step 3: address and work
         next_btn(page)
-        ok(f'[{label}] step 2 blocked when empty', step(page) == '2')
-        for f in STEP_FIELDS[1]:
+        ok(f'[{label}] step 3 blocked when empty', step(page) == '3' and len(sent()) == 0)
+        for f in STEP_FIELDS[2]:
             msg = (page.text_content(f'#{f}-error') or '').strip()
             ok(f'[{label}] empty {f} shows error', msg != '', msg)
         ok(f'[{label}] focus on purpose', page.evaluate('document.activeElement.id') == 'purpose')
@@ -174,33 +193,25 @@ with sync_playwright() as p:
         ok(f'[{label}] purpose options', opts == ['Покупка на вещи', 'Плащане на сметки', 'Рефинансиране на други задължения', 'Друго'], str(opts))
         opts = page.locator('#housing option:not([value=""])').all_text_contents()
         ok(f'[{label}] housing options', opts == ['Да', 'При роднини', 'Под наем', 'Друго'], str(opts))
-        fill_step2(page)
+        fill_address(page)
         ok(f'[{label}] select error clears on change', (page.text_content('#purpose-error') or '') == '')
-        page.locator('#apply').screenshot(path=f'{OUT}/{label}-step2.png')
-        back_btn(page)
-        ok(f'[{label}] back to step 1 keeps values', step(page) == '1' and page.input_value('#firstName') == 'Иван')
-        next_btn(page); next_btn(page)
-        ok(f'[{label}] step 2 -> step 3', step(page) == '3')
+        next_btn(page)
+        ok(f'[{label}] step 3 -> step 4', step(page) == '4')
         page.wait_for_timeout(500)
-        h3 = page.locator('#apply-form').bounding_box()['height']
-        ok(f'[{label}] form height follows the step', h2 > h1 and abs(h2 - h3) > 1, f'{h1} {h2} {h3}')
-        ok(f'[{label}] inactive steps not rendered', page.evaluate("[...document.querySelectorAll('.step:disabled')].every(s => getComputedStyle(s).display === 'none')"))
-        ok(f'[{label}] step 3 bar starts at 2/3 (amount+term)', abs(bar(page, 2) - 2/3) < 0.01, str(bar(page, 2)))
+        h4 = page.locator('#apply-form').bounding_box()['height']
+        ok(f'[{label}] last step is short (no taller than step 3)', h4 < h3, f'{h3} {h4}')
+        ok(f'[{label}] hero keeps its height on the last step', page.evaluate("document.querySelector('.hero').offsetHeight") == hero_h or w < 1024)
 
-        # Step 3: sliders, city, consent
-        page.fill('#amount', '3333'); page.locator('#amount').blur()
-        ok(f'[{label}] amount snaps to step of 50', page.input_value('#amount') == '3350')
-        ok(f'[{label}] slider follows number input', page.input_value('#amount-range') == '3350')
-        page.fill('#amount', '99999'); page.locator('#amount').blur()
-        ok(f'[{label}] amount clamps to max 5000', page.input_value('#amount') == '5000')
-        page.locator('#term').fill('24')
-        ok(f'[{label}] term output updates', '24 месеца' in page.text_content('#term-output'))
+        # Step 4: consent and submit
+        ok(f'[{label}] submit inactive without consent', page.get_attribute('[data-submit]', 'aria-disabled') == 'true' and 'is-inactive' in (page.get_attribute('[data-submit]', 'class') or ''))
         submit(page)
         ok(f'[{label}] consent error', 'Общите условия' in (page.text_content('#consent-error') or ''))
+        ok(f'[{label}] focus goes to the consent box', page.evaluate('document.activeElement.id') == 'consent')
         ok(f'[{label}] consent links terms + privacy', page.locator('label[for=consent] a[href="/terms"]').count() == 1 and page.locator('label[for=consent] a[href="/privacy"]').count() == 1)
         ok(f'[{label}] disclaimer under submit', 'не е договор за кредит' in (page.text_content('.disclaimer') or ''))
         ok(f'[{label}] no email on invalid submit', len(sent()) == 0)
-        fill_step3(page)
+        page.check('#consent')
+        ok(f'[{label}] submit active after consent', page.get_attribute('[data-submit]', 'aria-disabled') == 'false' and 'is-inactive' not in (page.get_attribute('[data-submit]', 'class') or ''))
         page.locator('#apply').screenshot(path=f'{OUT}/{label}-step3.png')
 
         submit(page)
@@ -222,7 +233,7 @@ with sync_playwright() as p:
             ok(f'[{label}] lead has all fields', not missing, str(missing))
             ok(f'[{label}] lead html has fields', 'Бяла (обл. Русе)' in lead['html'] and 'Шофьор' in lead['html'])
             body = conf['html'] + conf['text'] + conf['subject']
-            ok(f'[{label}] confirmation text', 'Получихме кандидатурата ти. Наш консултант ще се свърже с теб скоро.' in conf['text'])
+            ok(f'[{label}] confirmation text', 'Получихме кандидатурата Ви. Наш консултант ще се свърже с Вас скоро.' in conf['text'])
             ok(f'[{label}] confirmation has no personal data', not any(x in body for x in ['5 000', '24 мес', 'Иван', 'Петров', '888123456', 'Шипка', 'Витоша', 'Шофьор', 'Бяла']))
             ok(f'[{label}] emails carry agent statement', 'Royal Finance е търговска марка на „Глобъл Профинанс“ ЕООД, която действа като агент на „Тием Финанси“ ООД, ЕИК 202786529, вписано в регистъра на финансовите институции към БНБ под № BGR00464.' in conf['text'] and 'агент на „Тием Финанси“ ООД' in lead['html'])
             ok(f'[{label}] confirmation never says одобрена/приета', not any(x in body.lower() for x in ['одобрен', 'приет']))
@@ -232,28 +243,34 @@ with sync_playwright() as p:
     # Keyboard only: Enter moves through the steps and submits
     mock('/__reset', {})
     ctx, page, errors = new_page(browser, 1440, 900)
-    fill_step1(page)
-    page.locator('#email').press('Enter')
+    page.locator('#amount').press('Enter')
     page.wait_for_function("document.getElementById('apply-form').dataset.step === '2'")
-    ok('Enter in step 1 → step 2', page.get_attribute('#apply-form', 'data-step') == '2')
+    ok('Enter on a slider in step 1 → step 2', True)
     page.wait_for_function("document.getAnimations().filter(a => a.playState === 'running').length === 0")
-    ok('focus moves to the first field of step 2', page.evaluate('document.activeElement.id') == 'purpose')
-    page.locator('#purpose').press('Enter')  # a select keeps its own Enter: no step change
-    ok('Enter on a select does not advance', page.get_attribute('#apply-form', 'data-step') == '2')
-    fill_step2(page)
-    page.locator('#currentAddress').press('Enter')
+    ok('focus moves to the first field of step 2', page.evaluate('document.activeElement.id') == 'firstName')
+    fill_personal(page)
+    page.locator('#email').press('Enter')
     page.wait_for_function("document.getElementById('apply-form').dataset.step === '3'")
     ok('Enter in step 2 → step 3', True)
     page.wait_for_function("document.getAnimations().filter(a => a.playState === 'running').length === 0")
-    page.locator('#amount').press('Enter')
-    ok('Enter in step 3 without consent shows the consent error', 'Общите условия' in (page.text_content('#consent-error') or ''))
+    ok('focus moves to the first field of step 3', page.evaluate('document.activeElement.id') == 'purpose')
+    page.locator('#purpose').press('Enter')  # a select keeps its own Enter: no submit
+    ok('Enter on a select does not submit', len(sent()) == 0)
+    fill_address(page)
+    page.locator('#occupation').press('Enter')
+    page.wait_for_function("document.getElementById('apply-form').dataset.step === '4'")
+    ok('Enter in step 3 → step 4', True)
+    page.wait_for_function("document.getAnimations().filter(a => a.playState === 'running').length === 0")
+    page.locator('#consent').press('Enter')
+    ok('Enter in step 4 without consent shows the consent error', 'Общите условия' in (page.text_content('#consent-error') or ''))
     page.check('#consent')
-    page.locator('#amount').press('Enter')
+    page.locator('#consent').press('Enter')
     expect(page.locator('#apply-success')).to_be_visible(timeout=20000)
-    ok('Enter in step 3 submits', len(sent()) == 2, str(len(sent())))
+    ok('Enter in step 4 submits', len(sent()) == 2, str(len(sent())))
     page.goto(BASE); page.wait_for_load_state('networkidle')
+    page.locator('#term').press('Enter'); settle(page)
     page.fill('#firstName', 'И'); page.locator('#firstName').press('Enter')
-    ok('Enter with an invalid field stays and shows the error', page.get_attribute('#apply-form', 'data-step') == '1' and (page.text_content('#firstName-error') or '') != '')
+    ok('Enter with an invalid field stays and shows the error', page.get_attribute('#apply-form', 'data-step') == '2' and (page.text_content('#firstName-error') or '') != '')
     ctx.close()
 
     # Lead email fails -> error with retry -> retry succeeds
