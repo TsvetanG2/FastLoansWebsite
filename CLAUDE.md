@@ -11,7 +11,7 @@ All visible site copy is in **Bulgarian**, formal „Вие“ everywhere (clien
   2. Hero — background photo with dark overlay, logo, H1 „Бързо финансиране“ (client decision; not „Бързи кредити в Младост“ in titles either — the place stays in the intro and descriptions). `/location` H1 is also „Бързо финансиране“, tagline, subline, application form on the right (below on mobile). No CTA button: the form is already visible. Logo/copy start level with the top of the form card
   3. „Как бързото финансиране Ви помага“ (`UseCases.astro`, client copy 2026-10-23; replaced the 4-icon benefits strip) — intro + 3 cases one under another, no icons: Непредвидени разходи, Важно събитие, Необходимост от допълнителни средства
   4. "Защо да избереш Royal Finance?" — short text + checklist
-  5. „Как да кандидатствате?“ — 3 steps, no numbers (client 2026-10-23): Кандидатствайте онлайн → Получете одобрение → Вземете желаната сума
+  5. „Как да кандидатствате?“ — 3 steps, no numbers (client 2026-10-23): Кандидатствайте онлайн → Получете отговор → Вземете желаната сума
   6. Contact block — phone, hours, email
   7. Footer — logo, nav, row of legal links (Политика за поверителност · Общи условия · Решаване на спорове · Информация за кредитора), row with legal name, ЕИК, БНБ reg. №, © year
 - Content pages (spec: `seo.md`; formal "Вие"; layout `ContentPage.astro`):
