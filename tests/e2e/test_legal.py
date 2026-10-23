@@ -44,7 +44,7 @@ with sync_playwright() as p:
         # company data + specific content
         pg.goto(BASE + '/about')
         t = pg.text_content('main')
-        ok(f'[{label}] about agent data', all(x in t for x in ['„Глобъл Профинанс“ ЕООД', '208274496', 'бул. „Андрей Сахаров“ № 11', '+359 888 807 152', 'royalfinance@abv.bg', 'не отпуска кредити от свое име']))
+        ok(f'[{label}] about agent data', all(x in t for x in ['„Глобъл Профинанс“ ЕООД', '208274496', 'бул. „Андрей Сахаров“ № 11', '+359 888 807 152', 'finance@royalfinance.bg', 'не отпуска кредити от свое име']))
         ok(f'[{label}] about lender data', all(x in t for x in ['„Тием Финанси“ ООД', '202786529', 'гр. Перник 2300, ул. „Кракра“, бл. 39', 'BGR00464', 'БНБ-119213/10.11.2022', '10.11.2022', 'финансов лизинг', 'чл. 3а от Закона за кредитните институции']))
         ok(f'[{label}] about: no TODO rows for missing lender contacts', 'null' not in t and pg.locator('#kreditor ~ dl dt', has_text='Телефон').count() == 0)
         ok(f'[{label}] about: agent before lender', t.index('1. Royal Finance') < t.index('2. Кредитор'))
@@ -74,8 +74,9 @@ with sync_playwright() as p:
         ct = pg.goto(BASE + '/') and pg.text_content('#contact')
         low = pg.text_content('body').lower()
         ok(f'[{label}] home: no lender-style wording', not any(x in low for x in ['отпускаме', 'нашите кредити', 'ние одобряваме']))
-        ok(f'[{label}] home: agent statement under form', 'Royal Finance е търговска марка на „Глобъл Профинанс“ ЕООД, която действа като агент на „Тием Финанси“ ООД, ЕИК 202786529, вписано в регистъра на финансовите институции към БНБ под № BGR00464.' in pg.text_content('#apply-form'))
-        ok(f'[{label}] contact block real data', '+359 888 807 152' in ct and 'royalfinance@abv.bg' in ct and 'Понеделник – петък' in ct)
+        stmt = 'Royal Finance е търговска марка на „Глобъл Профинанс“ ЕООД, която действа като агент на „Тием Финанси“ ООД, ЕИК 202786529, вписано в регистъра на финансовите институции към БНБ под № BGR00464.'
+        ok(f'[{label}] home: agent statement not under the form (client), but in the footer of the same page', stmt not in pg.text_content('#apply-form') and stmt in pg.text_content('footer'))
+        ok(f'[{label}] contact block real data', '+359 888 807 152' in ct and 'finance@royalfinance.bg' in ct and 'abv.bg' not in ct and 'Понеделник – петък' in ct)
         ok(f'[{label}] contact office address', 'бул. „Андрей Сахаров“ № 11' in ct and '1784 София' in ct and 'бл. 79' not in ct and 'Отвори в карти' in ct)
         ok(f'[{label}] maps links (contact + footer)', pg.locator('a[data-maps-query]').count() == 2 and all('google.com/maps' in h for h in pg.eval_on_selector_all('a[data-maps-query]', 'as => as.map(a => a.href)')))
         ok(f'[{label}] header has phone but no working hours', '+359 888 807 152' in pg.text_content('header') and '10:00' not in pg.text_content('header'))

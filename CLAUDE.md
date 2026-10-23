@@ -107,7 +107,7 @@ Submission flow (`/api/apply`, emails via Resend, never called from the browser)
   - In practice Royal Finance is a separate office that runs everything with the customer, using Тием Финанси's system and licence (legally) under its own brand. The credit contract and the БНБ licence are Тием Финанси's, so the public disclosures below stay.
   - Never write „отпускаме кредити“, „нашите кредити“, „ние одобряваме“. Use „Кредитите се отпускат от …“, „ще получите отговор“, „помагаме Ви да кандидатствате“.
   - The site is the agent's: Royal Finance brand, design, contacts. Mention the lender only where required (under the form, footer, emails, `/about`, privacy recipients, `/disputes`). Never use the lender's logo or brand.
-  - `agentStatement` (company.ts) goes under the form, in the footer and in the email footer.
+  - `agentStatement` (company.ts) goes in the footer (so it is on every page, including the one with the form), in the applicant email footer, on `/about` and the legal pages. Not under the submit button (removed at the client's request 2026-10-24; the footer on the same page still shows it).
   - **Customers contact only Royal Finance** for any question about the credit, the application or the contract — never direct them to the lender (its data is shown only as the legal disclosure). Lender contacts/website are hidden while missing; no visible TODO rows on `/about`.
 - Under the submit button: „Подаването на заявка не е договор за кредит. Договор се сключва след одобрение и предоставяне на преддоговорна информация.“
 

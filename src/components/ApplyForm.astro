@@ -2,7 +2,6 @@
 import { ArrowLeft, ArrowRight, ChevronDown, CircleCheck, Lock, RotateCcw } from '@lucide/astro';
 import { AMOUNT, HOUSING, PURPOSES, TERM, formatEur, formatMonths } from '../lib/application';
 import { CITIES } from '../lib/cities';
-import { agentStatement } from '../data/company';
 
 const pct = (v: number, min: number, max: number) => `${((v - min) / (max - min)) * 100}%`;
 const STEP_TITLES = ['Сума и срок', 'Лични данни', 'Адрес и работа', 'Потвърждение'];
@@ -222,7 +221,6 @@ const STEP_TITLES = ['Сума и срок', 'Лични данни', 'Адре�
         Подаването на заявка не е договор за кредит. Договор се сключва след одобрение и предоставяне на
         преддоговорна информация.
       </p>
-      <p class="disclaimer">{agentStatement}</p>
     </fieldset>
     </div>
 
