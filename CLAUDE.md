@@ -65,7 +65,7 @@ Four steps, in this order (form copy uses formal "Вие"). The card takes the h
 | 3 | Какво работите | text | required, free text, 2–100 chars |
 | 4 Потвърждение | Съгласие | checkbox | required, unchecked by default, links to /terms and /privacy |
 
-Amount and term come first (easy, engaging start). Consent, submit and the disclaimers have their own last step so no step is taller than the hero (a taller hero used to zoom the cover photo; the photo is now pinned to a fixed height anyway). The submit button looks inactive (dark, gold outline, `aria-disabled`) until consent is ticked but stays clickable, so a click explains what is missing. Every form control is ≥16px font size, or iOS Safari zooms the page on focus.
+Amount and term come first (easy, engaging start). Consent, submit and the disclaimers have their own last step so no step is taller than the hero (a taller hero used to zoom the cover photo; the photo is now pinned to a fixed height anyway). The submit button looks inactive (dark, gold outline, `aria-disabled`) until consent is ticked but stays clickable, so a click explains what is missing. Every form control is ≥16px font size, or iOS Safari zooms the page on focus. On a step change the page scrolls with the card (desktop: centred; mobile: step label right under the header). On touch screens focus goes to the step itself, not its first field — focusing a field opens the keyboard and the browser then scrolls to it, breaking the scroll (regression found 2026-10-24).
 
 Requirements:
 - Enter in a field = "Продължете" (steps 1–2) / submit (step 3); selects keep their own Enter
@@ -140,7 +140,7 @@ Dark luxury style: black background, gold accents, serif headings.
 ## Quality bar
 
 - Lighthouse ≥ 95 in Performance, Accessibility, Best Practices, SEO
-- `<html lang="bg">`, meta title/description in Bulgarian, Open Graph image
+- `<html lang="bg">`, meta title/description in Bulgarian, Open Graph image (`public/og.png`, 1200×630). `og:image`/`og:url` use `VERCEL_PROJECT_PRODUCTION_URL` at build (the vercel.app address until royalfinance.bg is connected) so link previews work before the domain is live; canonical stays royalfinance.bg
 - SEO (spec: `seo.md`; manual steps in `SEO_TODO.md`): local target „бързи кредити Младост/София“. Unique title (≤ 60) + description per page; one H1; canonical `https://royalfinance.bg/...` without trailing slash (`trailingSlash: 'never'`, `/x/` → 308); JSON-LD from `src/lib/seo.ts` (FinancialService on every page, BreadcrumbList on subpages, no ratings); sitemap via `@astrojs/sitemap` (no 404/maintenance); `robots.txt` disallows `/api/`. NAP identical everywhere: office бул. „Андрей Сахаров“ № 11, ж.к. Младост 1, 1784 София (`company.officeAddress`); the registered seat is the same address (client, 2026-10-23)
 - Never use: „без проверка в ЦКР“, „с лошо ЦКР“, „гарантирано одобрение“, „без доходи“, „100% одобрение“. Not until the client confirms: „кредит в брой“, „пари в брой“, „до заплата“
 - Images in WebP/AVIF with width/height set

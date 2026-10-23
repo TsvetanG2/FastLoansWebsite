@@ -44,3 +44,4 @@
       снимка с пина. Ако някога трафикът стане голям или трябва гаранция: собствен хостинг на OpenFreeMap или платен
       доставчик (напр. MapTiler) — сменя се само адресът на стила в `src/components/OfficeMap.astro`.
 - [ ] **Имейл на домейна:** когато `royalfinance.bg` заработи — напр. `info@royalfinance.bg` вместо `royalfinance@abv.bg` (по-професионално; сменя се на едно място — `email` в `src/data/company.ts`).
+- [ ] **Картинка при споделяне:** след като свържеш `royalfinance.bg` → Redeploy, после обнови кеша в [Facebook Sharing Debugger](https://developers.facebook.com/tools/debug/) („Scrape Again“). Viber/WhatsApp пазят старата картинка няколко дни.
