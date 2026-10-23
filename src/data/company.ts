@@ -1,18 +1,42 @@
-// Single source of company data for the legal pages, footer, contact block and emails.
-// Never hardcode these values in pages. Missing values stay as visible "[TODO: …]"
-// and are listed in LEGAL_TODO.md.
+// Single source of company data for the legal pages, footer, contact block, emails and JSON-LD.
+// Never hardcode these values in pages. Missing values are left out of the site (no visible TODO)
+// and are listed in LEGAL_TODO.md / SEO_TODO.md.
 export const company = {
   legalName: '„Глобъл Профинанс“ ЕООД',
   legalNameLatin: 'GLOBAL PROFINANCE EOOD',
   brandName: 'Royal Finance',
   eik: '208274496',
-  registeredAddress: 'гр. София 1000, р-н Младост, ж.к. Младост 1, бл. 79, вх. 2, ет. 1',
-  correspondenceAddress: 'гр. София 1000, р-н Младост, ж.к. Младост 1, бл. 79, вх. 2, ет. 1', // TODO: потвърди дали е същият
-  /** Search text for the maps link (block number + district geocode better than the full legal address). */
-  officeMapQuery: 'ж.к. Младост 1, бл. 79, София, България',
+  /** Seat and management address (legal pages). Same as the office — client, 2026-10-23. */
+  registeredAddress: 'гр. София 1784, ж.к. Младост 1, бул. „Андрей Сахаров“ № 11',
+  /** The customer office: everything customer-facing (contacts, /location, footer, map, NAP, JSON-LD). */
+  officeAddress: 'бул. „Андрей Сахаров“ № 11, ж.к. Младост 1, 1784 София',
+  /** Letters and complaints go to the office. */
+  correspondenceAddress: 'бул. „Андрей Сахаров“ № 11, ж.к. Младост 1, 1784 София',
+  /** Search text for the maps link when coordinates are missing. */
+  officeMapQuery: 'бул. Андрей Сахаров 11, София, България',
+  /** Structured office address (NAP + JSON-LD). */
+  office: {
+    streetAddress: 'бул. „Андрей Сахаров“ № 11',
+    district: 'Младост 1',
+    locality: 'София',
+    postalCode: '1784',
+    country: 'BG',
+    /**
+     * Exact office position (decimal degrees). Drives the JSON-LD `geo` and the map on /location.
+     * After changing it run: node scripts/make-office-map.mjs <lat> <lon>
+     * null = not known yet → no map and no geo (nothing is shown instead of a wrong pin).
+     */
+    // OpenStreetMap: commercial building бул. Андрей Сахаров 11 (2026-10-23) — client to confirm the pin
+    geo: { lat: 42.6524536, lon: 23.3728051 } as { lat: number; lon: number } | null,
+  },
   phone: '+359 888 807 152',
   phoneHref: 'tel:+359888807152',
   workingHours: 'Понеделник – петък: 10:00 – 19:00 ч.; събота: 10:00 – 16:00 ч.; неделя: почивен ден',
+  /** Same hours as `workingHours`, structured for JSON-LD (schema.org openingHoursSpecification). */
+  openingHours: [
+    { days: ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday'], opens: '10:00', closes: '19:00' },
+    { days: ['Saturday'], opens: '10:00', closes: '16:00' },
+  ],
   holidayHours: 'В официалните празници – намалено работно време', // TODO: конкретните часове
   email: 'royalfinance@abv.bg',
   complaintsEmail: 'royalfinance@abv.bg',

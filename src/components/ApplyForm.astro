@@ -28,12 +28,12 @@ const STEP_TITLES = ['Лични данни', 'Адрес и работа', 'С�
       <div class="row">
         <div class="field">
           <label for="firstName">Вашето име</label>
-          <input id="firstName" name="firstName" type="text" autocomplete="given-name" maxlength="40" required aria-describedby="firstName-error" />
+          <input id="firstName" name="firstName" type="text" autocomplete="given-name" maxlength="40" placeholder="Вашето име" required aria-describedby="firstName-error" />
           <p class="error" id="firstName-error" data-error-for="firstName"></p>
         </div>
         <div class="field">
           <label for="lastName">Вашата фамилия</label>
-          <input id="lastName" name="lastName" type="text" autocomplete="family-name" maxlength="40" required aria-describedby="lastName-error" />
+          <input id="lastName" name="lastName" type="text" autocomplete="family-name" maxlength="40" placeholder="Вашата фамилия" required aria-describedby="lastName-error" />
           <p class="error" id="lastName-error" data-error-for="lastName"></p>
         </div>
       </div>
@@ -50,7 +50,7 @@ const STEP_TITLES = ['Лични данни', 'Адрес и работа', 'С�
 
       <div class="field">
         <label for="email">Имейл</label>
-        <input id="email" name="email" type="email" autocomplete="email" maxlength="254" required aria-describedby="email-error" />
+        <input id="email" name="email" type="email" autocomplete="email" maxlength="254" placeholder="Имейл" required aria-describedby="email-error" />
         <p class="error" id="email-error" data-error-for="email"></p>
       </div>
 
@@ -69,7 +69,7 @@ const STEP_TITLES = ['Лични данни', 'Адрес и работа', 'С�
         <label for="purpose">Причина за финансиране</label>
         <div class="select">
           <select id="purpose" name="purpose" required aria-describedby="purpose-error">
-            <option value="" selected disabled>Изберете</option>
+            <option value="" selected disabled>Причина за финансиране</option>
             {Object.entries(PURPOSES).map(([v, label]) => <option value={v}>{label}</option>)}
           </select>
           <ChevronDown aria-hidden="true" />
@@ -79,13 +79,13 @@ const STEP_TITLES = ['Лични данни', 'Адрес и работа', 'С�
 
       <div class="field">
         <label for="currentAddress">Настоящ адрес</label>
-        <input id="currentAddress" name="currentAddress" type="text" autocomplete="street-address" maxlength="200" placeholder="напр. ж.к. Младост 1, бл. 79" required aria-describedby="currentAddress-error" />
+        <input id="currentAddress" name="currentAddress" type="text" autocomplete="street-address" maxlength="200" placeholder="Настоящ адрес" required aria-describedby="currentAddress-error" />
         <p class="error" id="currentAddress-error" data-error-for="currentAddress"></p>
       </div>
 
       <div class="field">
         <label for="idAddress">Адрес по лична карта</label>
-        <input id="idAddress" name="idAddress" type="text" autocomplete="off" maxlength="200" placeholder="както е записан в личната карта" required aria-describedby="idAddress-error" />
+        <input id="idAddress" name="idAddress" type="text" autocomplete="off" maxlength="200" placeholder="Адрес по лична карта" required aria-describedby="idAddress-error" />
         <p class="error" id="idAddress-error" data-error-for="idAddress"></p>
       </div>
 
@@ -93,7 +93,7 @@ const STEP_TITLES = ['Лични данни', 'Адрес и работа', 'С�
         <label for="city">Град</label>
         <div class="select">
           <select id="city" name="city" autocomplete="address-level2" required aria-describedby="city-error">
-            <option value="" selected disabled>Изберете град</option>
+            <option value="" selected disabled>Град</option>
             {CITIES.map((c) => <option value={c}>{c}</option>)}
           </select>
           <ChevronDown aria-hidden="true" />
@@ -105,7 +105,7 @@ const STEP_TITLES = ['Лични данни', 'Адрес и работа', 'С�
         <label for="housing">В собствено жилище ли живеете?</label>
         <div class="select">
           <select id="housing" name="housing" required aria-describedby="housing-error">
-            <option value="" selected disabled>Изберете</option>
+            <option value="" selected disabled>В собствено жилище ли живеете?</option>
             {Object.entries(HOUSING).map(([v, label]) => <option value={v}>{label}</option>)}
           </select>
           <ChevronDown aria-hidden="true" />
@@ -115,7 +115,7 @@ const STEP_TITLES = ['Лични данни', 'Адрес и работа', 'С�
 
       <div class="field">
         <label for="occupation">Какво работите</label>
-        <input id="occupation" name="occupation" type="text" autocomplete="organization-title" maxlength="100" required aria-describedby="occupation-error" />
+        <input id="occupation" name="occupation" type="text" autocomplete="organization-title" maxlength="100" placeholder="Какво работите" required aria-describedby="occupation-error" />
         <p class="error" id="occupation-error" data-error-for="occupation"></p>
       </div>
 
@@ -614,6 +614,21 @@ const STEP_TITLES = ['Лични данни', 'Адрес и работа', 'С�
     if (current() < LAST) next();
     else submit();
   });
+
+  // Enter in a field = "Продължете" (steps 1–2) or "Изпратете заявката" (step 3).
+  // The browser's own Enter-to-submit does not fire here: the form's first submit button
+  // sits in the not-yet-active step 3 and is disabled. Selects keep their own Enter
+  // (opening the list); Enter on buttons and links keeps its normal meaning.
+  form.addEventListener('keydown', (e) => {
+    if (e.key !== 'Enter' || e.isComposing || e.shiftKey || e.altKey || e.ctrlKey || e.metaKey) return;
+    const el = e.target as HTMLElement;
+    if (!(el instanceof HTMLInputElement) || el.type === 'hidden') return;
+    e.preventDefault();
+    if (animating || submitBtn.disabled) return;
+    if (el.name === 'amount') amount.dispatchEvent(new Event('change'));
+    if (current() < LAST) next();
+    else submit();
+  });
   retryBtn.addEventListener('click', () => submit());
 </script>
 
@@ -785,7 +800,7 @@ const STEP_TITLES = ['Лични данни', 'Адрес и работа', 'С�
     color: var(--text);
     font: inherit;
   }
-  .field input::placeholder { color: #6f6a62; }
+  .field input::placeholder { color: #8a847a; } /* ≥ 4.5:1 on the field background */
   .field input:focus-visible,
   .select select:focus-visible { border-color: var(--gold-1); outline-offset: 1px; }
   .field input[aria-invalid='true'],

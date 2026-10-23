@@ -13,8 +13,9 @@ const toc = [
 const lenderWebsite = lender.website.startsWith('[TODO') ? null : lender.website;
 ---
 <Base
-  title="За нас и информация за кредитора — Royal Finance"
+  title="За нас и информация за кредитора | Royal Finance"
   description={`${company.brandName} (${company.legalName}) е агент на ${lender.legalName}. Данни за агента и за кредитора, регистрация в БНБ.`}
+  crumbs={[{ name: 'За нас и информация за кредитора', path: '/about' }]}
 >
   <LegalPage title="За нас и информация за кредитора" toc={toc}>
     <h2 id="agent">1. За нас</h2>
@@ -27,7 +28,7 @@ const lenderWebsite = lender.website.startsWith('[TODO') ? null : lender.website
       <dt>Търговска марка</dt><dd>{company.brandName}</dd>
       <dt>ЕИК</dt><dd>{company.eik}</dd>
       <dt>Седалище и адрес на управление</dt><dd>{company.registeredAddress}</dd>
-      <dt>Адрес за кореспонденция</dt><dd>{company.correspondenceAddress}</dd>
+      <dt>Офис и адрес за кореспонденция</dt><dd>{company.officeAddress}</dd>
       <dt>Телефон</dt><dd><a href={company.phoneHref}>{company.phone}</a></dd>
       <dt>Имейл</dt><dd><a href={`mailto:${company.email}`}>{company.email}</a></dd>
       <dt>Работно време</dt><dd>{company.workingHours}<br />{company.holidayHours}</dd>

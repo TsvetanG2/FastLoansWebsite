@@ -16,7 +16,12 @@ import { nav, site } from '../config/site';
         <span class="visually-hidden">Меню</span>
       </button>
       <ul id="nav-list" class="nav-list">
-        {nav.map((item) => <li><a href={item.href} data-section={item.href === '/' ? 'home' : item.href.split('#')[1]}>{item.label}</a></li>)}
+        {nav.map((item) => {
+          // Home-page sections are tracked by the scroll-spy; other pages are marked here
+          const section = item.href === '/' ? 'home' : item.href.split('#')[1];
+          const isPage = !section && Astro.url.pathname.replace(/\/+$/, '') === item.href;
+          return <li><a href={item.href} data-section={section} aria-current={isPage ? 'page' : undefined}>{item.label}</a></li>;
+        })}
         <li class="nav-phone-mobile">
           <a href={site.phone.href}>{site.phone.display}</a>
         </li>

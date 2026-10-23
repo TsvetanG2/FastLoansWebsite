@@ -1,6 +1,6 @@
 ---
 import MapLink from './MapLink.astro';
-import { nav } from '../config/site';
+import { footerNav } from '../config/site';
 import { agentStatement, company, legalLinks } from '../data/company';
 const year = new Date().getFullYear();
 ---
@@ -16,7 +16,7 @@ const year = new Date().getFullYear();
 
     <nav class="col" aria-labelledby="f-nav">
       <h2 id="f-nav">Навигация</h2>
-      <ul>{nav.map((item) => <li><a href={item.href}>{item.label}</a></li>)}</ul>
+      <ul>{footerNav.map((item) => <li><a href={item.href}>{item.label}</a></li>)}</ul>
     </nav>
 
     <nav class="col" aria-labelledby="f-legal">
@@ -29,7 +29,7 @@ const year = new Date().getFullYear();
       <ul>
         <li><a class="nowrap" href={company.phoneHref}>{company.phone}</a></li>
         <li><a class="nowrap" href={`mailto:${company.email}`}>{company.email}</a></li>
-        <li><MapLink class="addr">{company.registeredAddress}</MapLink></li>
+        <li><MapLink class="addr">{company.officeAddress}</MapLink></li>
       </ul>
     </div>
   </div>

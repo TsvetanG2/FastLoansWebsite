@@ -22,10 +22,11 @@ import heroBg from '../../assets/background.webp';
   />
   <div class="container hero-grid">
     <div class="hero-copy">
-      <img class="hero-logo" src="/logo.svg" alt="" width="220" height="224" />
-      <h1 id="hero-title">Твоите планове заслужават подкрепа</h1>
+      <img class="hero-logo" src="/logo.svg" alt="Royal Finance" width="220" height="224" />
+      <h1 id="hero-title">Бързо финансиране</h1>
+      <p class="tagline">Твоите планове заслужават подкрепа</p>
       <p class="lead">
-        Кредит от 500 до 5&nbsp;000&nbsp;€ със срок от 3 до 60 месеца. Кандидатстваш онлайн за минута.
+        Бърз кредит, кандидатствай онлайн. Кредит от 500 до 5&nbsp;000&nbsp;€ със срок от 3 до 60 месеца.
         Получете отговор до 10 минути.
       </p>
     </div>
@@ -78,9 +79,15 @@ import heroBg from '../../assets/background.webp';
   .hero-copy { display: grid; gap: 1.25rem; justify-items: start; }
   .hero-logo { display: none; }
   h1 {
-    font-size: clamp(2.1rem, 1.4rem + 3.5vw, 3.6rem);
+    font-size: clamp(2.1rem, 1.2rem + 2.6vw, 3.4rem);
     color: var(--text);
-    max-width: 15ch;
+    max-width: 16ch;
+  }
+  .tagline {
+    margin-top: -0.4rem;
+    font-family: var(--font-serif);
+    font-size: clamp(1.2rem, 1rem + 0.9vw, 1.6rem);
+    color: var(--gold-2);
   }
   .lead {
     font-size: 1.075rem;
@@ -100,5 +107,9 @@ import heroBg from '../../assets/background.webp';
     /* Copy starts level with the top of the form card */
     .hero-copy { align-self: start; }
     .hero-logo { display: block; width: 13.5rem; height: auto; margin-bottom: 0.5rem; }
+  }
+  /* Narrow desktops: smaller logo so the headline and intro stay above the fold */
+  @media (min-width: 1024px) and (max-width: 1279px) {
+    .hero-logo { width: 10rem; }
   }
 </style>

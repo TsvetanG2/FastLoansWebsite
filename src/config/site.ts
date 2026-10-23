@@ -12,8 +12,16 @@ export const site = {
   email: company.email,
 } as const;
 
+/** Header menu: the sections of the home page. */
 export const nav = [
   { label: 'Начало', href: '/' },
   { label: 'За нас', href: '/#about' },
   { label: 'Контакти', href: '/#contact' },
+] as const;
+
+/** Footer navigation: the menu plus the content pages. */
+export const footerNav = [
+  ...nav,
+  { label: 'Локация', href: '/location' },
+  { label: 'Въпроси', href: '/faq' },
 ] as const;
