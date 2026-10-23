@@ -7,15 +7,17 @@ import { company } from '../data/company';
 
 interface Props { class?: string }
 const { class: className } = Astro.props;
-const q = encodeURIComponent(company.officeMapQuery);
+// Exact coordinates when known (precise pin), otherwise the address search text
+const query = company.office.geo ? `${company.office.geo.lat},${company.office.geo.lon}` : company.officeMapQuery;
+const q = encodeURIComponent(query);
 ---
 <a
   class={className}
   href={`https://www.google.com/maps/search/?api=1&query=${q}`}
   target="_blank"
   rel="noopener"
-  data-maps-query={company.officeMapQuery}
-  aria-label={`${company.registeredAddress} — отвори в карти`}
+  data-maps-query={query}
+  aria-label={`${company.officeAddress} — отвори в карти`}
 ><slot /></a>
 
 <script>

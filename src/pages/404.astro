@@ -1,0 +1,40 @@
+---
+import { ArrowRight } from '@lucide/astro';
+import Base from '../layouts/Base.astro';
+import { company } from '../data/company';
+---
+<Base title="Страницата не е намерена | Royal Finance" description="Страницата, която търсите, не съществува." noindex>
+  <section class="section not-found">
+    <div class="container inner">
+      <p class="code" aria-hidden="true">404</p>
+      <h1 class="section-title">Страницата не е намерена</h1>
+      <p class="lead">Възможно е адресът да е сгрешен или страницата да е преместена.</p>
+      <div class="actions">
+        <a class="btn btn-gold" href="/">Към началната страница <ArrowRight aria-hidden="true" /></a>
+        <a class="btn btn-outline" href="/#apply">Кандидатствайте за кредит</a>
+      </div>
+      <p class="help">
+        Търсите нещо конкретно? Вижте <a href="/faq">често задаваните въпроси</a> или се обадете на
+        {' '}<a href={company.phoneHref}>{company.phone}</a>.
+      </p>
+    </div>
+  </section>
+</Base>
+
+<style>
+  .not-found { min-height: 70vh; display: grid; align-items: center; }
+  .inner { display: grid; justify-items: center; gap: 1rem; text-align: center; }
+  .code {
+    font-family: var(--font-serif);
+    font-size: clamp(5rem, 3rem + 10vw, 9rem);
+    line-height: 1;
+    background: var(--gold-gradient);
+    -webkit-background-clip: text;
+    background-clip: text;
+    color: transparent;
+  }
+  .lead { color: var(--text-muted); max-width: 40ch; }
+  .actions { display: flex; flex-wrap: wrap; justify-content: center; gap: 0.75rem; margin-top: 0.5rem; }
+  .help { margin-top: 1rem; font-size: 0.95rem; color: var(--text-muted); }
+  .help a { color: var(--gold-2); }
+</style>

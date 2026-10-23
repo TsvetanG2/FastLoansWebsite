@@ -1,0 +1,19 @@
+---
+// Shared shell for content pages (FAQ, location): title, optional intro, prose body.
+interface Props {
+  title: string;
+  intro?: string;
+}
+const { title, intro } = Astro.props;
+---
+<section class="section content">
+  <article class="container prose">
+    <h1 class="section-title">{title}</h1>
+    {intro && <p class="intro">{intro}</p>}
+    <slot />
+  </article>
+</section>
+
+<style>
+  .intro { font-size: 1.1rem; color: var(--text); max-width: 60ch; }
+</style>

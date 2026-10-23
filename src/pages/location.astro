@@ -1,0 +1,87 @@
+---
+import { ArrowRight, ArrowUpRight, Clock, IdCard, Mail, MapPin, Phone } from '@lucide/astro';
+import Base from '../layouts/Base.astro';
+import ContentPage from '../components/ContentPage.astro';
+import MapLink from '../components/MapLink.astro';
+import OfficeMap from '../components/OfficeMap.astro';
+import { company } from '../data/company';
+
+// Facts only from company.ts and what the client confirmed (2026-10-23): only an ID card is
+// needed; the office is close to public transport. No invented stops or lines.
+const hours = company.workingHours.split(';').map((part) => {
+  const [days, time] = part.trim().split(/:\s(.+)/);
+  return [days[0].toUpperCase() + days.slice(1), time] as const;
+});
+---
+<Base
+  title="Локация — бул. „Андрей Сахаров“ № 11 | Royal Finance"
+  description="Офисът на Royal Finance е на бул. „Андрей Сахаров“ № 11, ж.к. Младост 1, София. Адрес, карта, работно време и какво да носите."
+  crumbs={[{ name: 'Локация', path: '/location' }]}
+>
+  <ContentPage
+    title="Бързо финансиране"
+    intro={`Офисът на ${company.brandName} е в ж.к. Младост 1. Тук можете да кандидатствате за кредит на място и да зададете въпросите си на консултант.`}
+  >
+    <h2>Адрес</h2>
+    <p class="row">
+      <MapPin aria-hidden="true" />
+      <span>{company.officeAddress}</span>
+    </p>
+    <p>
+      <MapLink class="map-btn">Отвори в карти <ArrowUpRight aria-hidden="true" /></MapLink>
+    </p>
+    <OfficeMap />
+
+    <h2>Как да стигнете</h2>
+    <p>
+      Офисът се намира на бул. „Андрей Сахаров“ № 11 в ж.к. Младост 1 и е близо до спирки на градския транспорт. Удобен е за жителите на
+      Младост и съседните квартали. Най-лесно ще го намерите, като отворите адреса в приложението за карти на
+      телефона си — бутонът по-горе отваря Google Maps, Apple Maps или друго приложение, което ползвате.
+    </p>
+
+    <h2>Работно време</h2>
+    <dl>
+      {hours.map(([d, t]) => <><dt>{d}</dt><dd>{t}</dd></>)}
+    </dl>
+    <p class="note"><Clock aria-hidden="true" /> {company.holidayHours}.</p>
+
+    <h2>Какво да носите</h2>
+    <p class="row">
+      <IdCard aria-hidden="true" />
+      <span>Само валидна лична карта. Останалото ще уточните с консултанта на място.</span>
+    </p>
+
+    <h2>Връзка с нас</h2>
+    <p class="row"><Phone aria-hidden="true" /><a href={company.phoneHref}>{company.phone}</a></p>
+    <p class="row"><Mail aria-hidden="true" /><a href={`mailto:${company.email}`}>{company.email}</a></p>
+
+    <h2>Предпочитате онлайн?</h2>
+    <p>
+      Можете да кандидатствате и от сайта — попълнете формата за няколко минути и получете отговор до
+      10 минути. Наш консултант ще се свърже с Вас по телефона.
+    </p>
+    <p><a class="btn btn-gold" href="/#apply">Кандидатствайте онлайн <ArrowRight aria-hidden="true" /></a></p>
+  </ContentPage>
+</Base>
+
+<style>
+  .row { display: flex; align-items: flex-start; gap: 0.75rem; }
+  .row :global(svg), .note :global(svg) { flex: none; width: 1.25rem; height: 1.25rem; margin-top: 0.2rem; color: var(--gold-2); stroke-width: 1.5; }
+  .note { display: flex; gap: 0.6rem; font-size: 0.95rem; }
+  /* The links live inside ContentPage's .prose, so these must be global to beat `.prose a` */
+  :global(.prose a.map-btn) {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.4rem;
+    min-height: 2.75rem;
+    padding: 0.5rem 1.1rem;
+    border: 1px solid var(--border-gold);
+    border-radius: 999px;
+    color: var(--gold-2);
+    font-weight: 700;
+    text-decoration: none;
+  }
+  :global(.prose a.map-btn:hover) { background: rgba(201, 162, 74, 0.08); }
+  :global(.prose a.map-btn svg) { width: 1rem; height: 1rem; }
+  :global(.prose a.btn) { color: #14100a; text-decoration: none; }
+</style>

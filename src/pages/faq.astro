@@ -1,0 +1,120 @@
+---
+import Base from '../layouts/Base.astro';
+import ContentPage from '../components/ContentPage.astro';
+import { company } from '../data/company';
+import { AMOUNT, TERM, formatEur } from '../lib/application';
+import { faqPage } from '../lib/seo';
+
+// Facts only from company.ts / application.ts and client-approved claims (CLAUDE.md).
+// No cost figures, no "в брой" / "до заплата" (not confirmed by the client).
+// Customers are pointed only to Royal Finance; the lender is disclosed only where the law requires
+// (under the form, footer, /about, legal pages) — not in the FAQ.
+// `links` are rendered after the answer; the JSON-LD gets the plain answer text.
+const faqs: { q: string; a: string; links?: { href: string; label: string }[] }[] = [
+  {
+    q: 'Как да кандидатствам за кредит?',
+    a: `Попълнете формата на сайта — три кратки стъпки — или елате в офиса ни на ${company.office.streetAddress} в ж.к. ${company.office.district}. След като получим заявката, наш консултант се свързва с Вас по телефона.`,
+    links: [{ href: '/#apply', label: 'Към формата' }],
+  },
+  {
+    q: 'Какви документи са ми нужни?',
+    a: 'Нужна Ви е само валидна лична карта.',
+  },
+  {
+    q: 'Колко бързо ще получа отговор?',
+    a: 'Получете отговор до 10 минути. Наш консултант се свързва с Вас по посочения телефон.',
+  },
+  {
+    q: 'Каква сума и за какъв срок мога да поискам?',
+    a: `Кредит от ${formatEur(AMOUNT.min)} до ${formatEur(AMOUNT.max)} със срок от ${TERM.min} до ${TERM.max} месеца.`,
+  },
+  {
+    q: 'Задължава ли ме подаването на заявка?',
+    a: 'Не. Подаването на заявка не е договор за кредит и не гарантира одобрение. Договор се сключва след одобрение и предоставяне на преддоговорна информация.',
+  },
+  {
+    q: 'Проверява ли се кредитната ми история?',
+    a: 'Да. Преди решение се оценява кредитоспособността Ви, както изисква чл. 16 от Закона за потребителския кредит.',
+  },
+  {
+    q: 'Какви са разходите по кредита?',
+    a: 'Преди да подпишете договор, получавате Стандартен европейски формуляр с цялата информация за кредита, включително всички разходи и годишния процент на разходите (ГПР). Консултантът ще Ви обясни условията на Вашия кредит.',
+  },
+  {
+    q: 'Как ще получа сумата?',
+    a: 'След одобрение наш консултант ще Ви обясни как да получите сумата.',
+  },
+  {
+    q: 'Къде се намира офисът и какво е работното време?',
+    a: `Офисът е на адрес ${company.officeAddress}. Работно време: ${company.workingHours}.`,
+    links: [{ href: '/location', label: 'Как да ни намерите' }],
+  },
+  {
+    q: 'Как се обработват личните ми данни?',
+    a: 'Използваме данните само за обработка на заявката и връзка с Вас. Подробности — в Политиката за поверителност.',
+    links: [{ href: '/privacy', label: 'Политика за поверителност' }],
+  },
+  {
+    q: 'Как да подам жалба?',
+    a: `Писмено на адреса на офиса, по имейл на ${company.complaintsEmail} или по телефон на ${company.phone}. Отговаряме в срок до ${company.complaintResponseDays} дни.`,
+    links: [{ href: '/disputes', label: 'Решаване на спорове' }],
+  },
+];
+---
+<Base
+  title="Въпроси за бързите кредити | Royal Finance"
+  description="Отговори на често задавани въпроси: как да кандидатствате, какви документи са нужни, кога ще получите отговор и кой отпуска кредита."
+  crumbs={[{ name: 'Въпроси', path: '/faq' }]}
+  schema={[faqPage(faqs)]}
+>
+  <ContentPage title="Често задавани въпроси" intro="Кратки отговори на най-честите въпроси за кандидатстването и офиса ни в Младост.">
+    <div class="faq">
+      {faqs.map(({ q, a, links }) => (
+        <details>
+          <summary>{q}</summary>
+          <div class="answer">
+            <p>{a}</p>
+            {links?.map((l) => <p><a href={l.href}>{l.label}</a></p>)}
+          </div>
+        </details>
+      ))}
+    </div>
+    <p class="more">
+      Не намирате отговор? Обадете се на <a href={company.phoneHref}>{company.phone}</a> или пишете на
+      {' '}<a href={`mailto:${company.email}`}>{company.email}</a>.
+    </p>
+  </ContentPage>
+</Base>
+
+<style>
+  .faq { margin-top: 2rem; border-top: 1px solid #2b2721; }
+  details { border-bottom: 1px solid #2b2721; }
+  summary {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 1rem;
+    padding: 1.1rem 0;
+    font-family: var(--font-serif);
+    font-size: 1.1rem;
+    color: var(--text);
+    cursor: pointer;
+    list-style: none;
+  }
+  summary::-webkit-details-marker { display: none; }
+  summary::after {
+    content: '';
+    flex: none;
+    width: 0.6rem;
+    height: 0.6rem;
+    border-right: 1.5px solid var(--gold-1);
+    border-bottom: 1.5px solid var(--gold-1);
+    transform: rotate(45deg) translateY(-25%);
+    transition: transform 0.25s ease;
+  }
+  details[open] summary::after { transform: rotate(225deg) translateY(-25%); }
+  summary:hover { color: var(--gold-2); }
+  .answer { padding-bottom: 1.1rem; }
+  .answer p:first-child { margin-top: 0; }
+  .more { margin-top: 2rem; }
+</style>

@@ -1,0 +1,52 @@
+---
+// Shown for every URL while MAINTENANCE_MODE=1 at build time (see scripts/vercel-output.mjs),
+// with status 503 + Retry-After so search engines treat it as temporary. Self-contained:
+// no menu or footer (their links would lead here anyway), no analytics.
+import '../styles/global.css';
+import { company } from '../data/company';
+import { site } from '../config/site';
+---
+<!doctype html>
+<html lang="bg">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Сайтът се обновява | Royal Finance</title>
+    <meta name="description" content="Сайтът на Royal Finance се обновява. Моля, опитайте отново след малко." />
+    <meta name="robots" content="noindex" />
+    <meta name="theme-color" content="#0a0a0a" />
+    <link rel="icon" href="/favicon.ico" sizes="any" />
+    <link rel="icon" href="/favicon.svg" type="image/svg+xml" />
+  </head>
+  <body>
+    <main class="wrap">
+      <img src="/logo.svg" alt="Royal Finance" width="160" height="163" />
+      <h1>Сайтът се обновява</h1>
+      <p>Работим по сайта и ще се върнем след малко. Благодарим за търпението!</p>
+      <p class="contact">
+        За спешни въпроси: <a href={company.phoneHref}>{company.phone}</a><br />
+        <span>{site.hours}</span>
+      </p>
+    </main>
+  </body>
+</html>
+
+<style>
+  .wrap {
+    min-height: 100vh;
+    display: grid;
+    place-content: center;
+    justify-items: center;
+    gap: 1.25rem;
+    padding: 2rem var(--gutter);
+    text-align: center;
+    background:
+      radial-gradient(40rem 30rem at 50% 30%, rgba(201, 162, 74, 0.14), transparent 70%),
+      var(--bg);
+  }
+  img { width: 8rem; height: auto; }
+  h1 { font-size: clamp(2rem, 1.5rem + 2.5vw, 3rem); color: var(--gold-2); }
+  p { color: var(--text-muted); max-width: 40ch; }
+  .contact a { color: var(--gold-2); font-weight: 700; text-decoration: none; }
+  .contact span { font-size: 0.9rem; }
+</style>

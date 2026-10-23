@@ -21,9 +21,24 @@ const headerRoutes = (vercel.headers ?? []).map(({ source, headers }) => ({
   headers: Object.fromEntries(headers.map(({ key, value }) => [key, value])),
   continue: true,
 }));
+// Maintenance mode: MAINTENANCE_MODE=1 (Vercel env var) + Redeploy shows /maintenance for every URL
+// with 503 + Retry-After (temporary for search engines). Assets it needs and /api/health stay reachable.
+const maintenanceOn = ['1', 'true', 'on'].includes(String(process.env.MAINTENANCE_MODE ?? '').toLowerCase());
+const maintenanceFile = ['maintenance/index.html', 'maintenance.html'].find((f) => fs.existsSync(path.join(OUT, 'static', f)));
+if (maintenanceOn && !maintenanceFile) throw new Error('vercel-output: MAINTENANCE_MODE is on but the maintenance page was not built');
+const maintenanceRoutes = maintenanceOn
+  ? [{
+      src: '^/(?!_astro/|favicon\\.|logo\\.svg|logo-mark\\.svg|apple-touch-icon\\.png|maintenance|api/health).*$',
+      dest: `/${maintenanceFile}`,
+      status: 503,
+      headers: { 'Retry-After': '3600', 'Cache-Control': 'no-store', 'X-Robots-Tag': 'noindex' },
+    }]
+  : [];
+
 // Drop routes a previous run of this script added, then put ours first
-const marker = (r) => r.headers && 'Content-Security-Policy' in r.headers && r.continue;
-config.routes = [...headerRoutes, ...(config.routes ?? []).filter((r) => !marker(r))];
+// (ours: the CSP header route, and the 503 maintenance route — no custom keys, Vercel validates config.json)
+const marker = (r) => (r.headers && 'Content-Security-Policy' in r.headers && r.continue) || (r.status === 503 && r.headers?.['Retry-After']);
+config.routes = [...headerRoutes, ...maintenanceRoutes, ...(config.routes ?? []).filter((r) => !marker(r))];
 fs.writeFileSync(configPath, JSON.stringify(config, null, 2));
 
 let functions = 0;
@@ -43,4 +58,4 @@ if (vercel.regions?.length) {
   walk(path.join(OUT, 'functions'));
 }
 
-console.log(`vercel-output: ${headerRoutes.length} header route(s), regions ${JSON.stringify(vercel.regions)} → ${functions} function(s)`);
+console.log(`vercel-output: ${headerRoutes.length} header route(s), regions ${JSON.stringify(vercel.regions)} → ${functions} function(s), maintenance ${maintenanceOn ? 'ON' : 'off'}`);

@@ -1,0 +1,180 @@
+---
+// Interactive office map, always on: MapLibre GL (bundled) + OpenFreeMap "Liberty" vector style —
+// a light, colourful street map close to the familiar Google look. Free for commercial use, no key,
+// no cookies (so no consent banner). The CSP allows tiles.openfreemap.org (connect/img) and blob:
+// workers for MapLibre. Labels are switched to Bulgarian. Without JS the static image from
+// scripts/make-office-map.mjs is shown. Renders nothing until company.office.geo is set.
+import fs from 'node:fs';
+import path from 'node:path';
+import { company } from '../data/company';
+
+const geo = company.office.geo;
+const STATIC = '/images/office-map.webp';
+const hasStatic = fs.existsSync(path.join(process.cwd(), 'public', STATIC));
+---
+{geo && (
+  <figure class="office-map">
+    <div
+      class="map"
+      data-lat={geo.lat}
+      data-lon={geo.lon}
+      data-label={`${company.brandName} — ${company.officeAddress}`}
+      role="region"
+      aria-label={`Карта: офисът на ${company.brandName} на ${company.officeAddress}`}
+    >
+      {hasStatic && (
+        <>
+          <img class="ph" src={STATIC} width="1200" height="600" alt={`Карта: офисът на ${company.brandName}`} decoding="async" />
+          <span class="ph-credit">© OpenStreetMap</span>
+        </>
+      )}
+    </div>
+  </figure>
+)}
+
+<script>
+  // Static CSS import: inlined into this page (a dynamic import() would reference a CSS file that
+  // build.inlineStylesheets: 'always' never emits).
+  import 'maplibre-gl/dist/maplibre-gl.css';
+  // MapLibre's tile worker, bundled by Vite as its own same-origin file (CSP worker-src 'self')
+  import workerUrl from 'maplibre-gl/dist/maplibre-gl-worker.mjs?worker&url';
+
+  const STYLE = 'https://tiles.openfreemap.org/styles/liberty';
+  // Bulgarian names first, then the local (Cyrillic) name, then whatever the tile has
+  const BG_LABEL = ['coalesce', ['get', 'name:bg'], ['get', 'name:nonlatin'], ['get', 'name']];
+  const PIN =
+    '<svg viewBox="-32 -92 64 96" width="40" height="60" aria-hidden="true"><path d="M0 0C-6-18-30-34-30-58a30 30 0 1 1 60 0C30-34 6-18 0 0Z" fill="#c9a24a" stroke="#14100a" stroke-width="4"/><circle cy="-58" r="11" fill="#14100a"/></svg>';
+
+  for (const el of document.querySelectorAll<HTMLElement>('.office-map .map')) {
+    const center: [number, number] = [Number(el.dataset.lon), Number(el.dataset.lat)];
+    // The library is big (~430 KB gzipped with its worker). Until it is needed, a static image of the
+    // same spot stands in. It loads once the map is on screen AND the visitor has interacted with the
+    // page (scroll, touch, mouse, key) — so it never competes with the first paint, yet appears long
+    // before anyone reaches for the map.
+    let visible = false;
+    let interacted = false;
+    let started = false;
+    const EVENTS = ['scroll', 'wheel', 'pointerdown', 'pointermove', 'touchstart', 'keydown'] as const;
+    const start = () => {
+      if (started || !visible || !interacted) return;
+      started = true;
+      for (const ev of EVENTS) removeEventListener(ev, onInteract);
+      const run = () => void init();
+      if ('requestIdleCallback' in window) requestIdleCallback(run, { timeout: 800 });
+      else setTimeout(run, 100);
+    };
+    const onInteract = () => {
+      interacted = true;
+      start();
+    };
+    for (const ev of EVENTS) addEventListener(ev, onInteract, { passive: true });
+    const io = new IntersectionObserver((entries) => {
+      visible = entries.some((e) => e.isIntersecting);
+      start();
+    });
+    io.observe(el);
+
+    async function init() {
+        io.disconnect();
+        // Fallback: the static image stays underneath until the live map has really loaded. If
+        // OpenFreeMap fails or is too slow (outage, blocking, offline), the live map is dropped and
+        // the image with the pin simply remains — the page never shows a broken or empty map.
+        let maplibregl: typeof import('maplibre-gl');
+        try {
+          maplibregl = await import('maplibre-gl');
+        } catch {
+          return;
+        }
+        maplibregl.setWorkerUrl(workerUrl);
+        const box = document.createElement('div');
+        box.className = 'live';
+        el.append(box);
+        const map = new maplibregl.Map({
+          container: box,
+          style: STYLE,
+          center,
+          zoom: 16.5,
+          minZoom: 11,
+          maxZoom: 19,
+          attributionControl: { compact: true },
+          cooperativeGestures: false,
+        });
+        map.addControl(new maplibregl.NavigationControl({ showCompass: false }), 'top-left');
+        map.addControl(new maplibregl.FullscreenControl(), 'top-left');
+        // The wheel scrolls the page until the visitor clicks into the map
+        map.scrollZoom.disable();
+        map.on('click', () => map.scrollZoom.enable());
+        el.addEventListener('mouseleave', () => map.scrollZoom.disable());
+
+        let loaded = false;
+        const giveUp = () => {
+          if (loaded) return;
+          loaded = true; // stop further attempts
+          map.remove();
+          box.remove();
+        };
+        const timer = setTimeout(giveUp, 10_000);
+        map.on('error', () => {
+          if (!loaded) giveUp();
+        });
+        map.on('load', () => {
+          if (loaded) return;
+          loaded = true;
+          clearTimeout(timer);
+          box.classList.add('is-ready');
+          // Keep the attribution collapsed to its (i) button — it covers half the map on phones
+          box.querySelector('.maplibregl-ctrl-attrib')?.classList.remove('maplibregl-compact-show');
+          // Once the live map is shown, the placeholder is no longer needed
+          // (a timer, not transitionend: with reduced motion there is no transition)
+          setTimeout(() => el.querySelectorAll('.ph, .ph-credit').forEach((n) => n.remove()), 600);
+        });
+        map.on('style.load', () => {
+          for (const layer of map.getStyle().layers ?? []) {
+            if (layer.type === 'symbol' && map.getLayoutProperty(layer.id, 'text-field') !== undefined) {
+              map.setLayoutProperty(layer.id, 'text-field', BG_LABEL as never);
+            }
+          }
+        });
+
+        const pinEl = document.createElement('div');
+        pinEl.className = 'rf-pin';
+        pinEl.innerHTML = PIN;
+        new maplibregl.Marker({ element: pinEl, anchor: 'bottom' })
+          .setLngLat(center)
+          .setPopup(new maplibregl.Popup({ offset: 56 }).setHTML(`<strong>${el.dataset.label}</strong>`))
+          .addTo(map);
+    }
+  }
+</script>
+
+<style>
+  .office-map { margin: 1.25rem 0 0; }
+  .map {
+    height: 22rem;
+    border-radius: 0.75rem;
+    overflow: hidden;
+    border: 1px solid var(--border-gold);
+    background: #f2efe9;
+    z-index: 0; /* keep the map's layers under the sticky header */
+  }
+  @media (min-width: 1024px) {
+    .map { height: 26rem; }
+  }
+  .map { position: relative; }
+  /* Live map sits on top of the placeholder and fades in only once loaded */
+  .map :global(.live) { position: absolute; inset: 0; opacity: 0; transition: opacity 0.4s ease; }
+  .map :global(.live.is-ready) { opacity: 1; }
+  .ph { display: block; width: 100%; height: 100%; object-fit: cover; }
+  .ph-credit {
+    position: absolute;
+    right: 0.4rem;
+    bottom: 0.4rem;
+    padding: 0.1rem 0.4rem;
+    border-radius: 0.3rem;
+    background: rgba(255, 255, 255, 0.8);
+    color: #333;
+    font-size: 0.7rem;
+  }
+  .map :global(.rf-pin) { cursor: pointer; filter: drop-shadow(0 4px 4px rgba(0, 0, 0, 0.45)); }
+  .map :global(.maplibregl-popup-content) { color: #14100a; font: 600 0.85rem var(--font-sans); }
+</style>
