@@ -56,6 +56,10 @@ export default defineConfig({
       RATE_LIMIT_SALT: optionalSecret(),
       // Extra allowed origins, comma-separated (e.g. the *.vercel.app URL before the domain is live)
       ALLOWED_ORIGINS: optionalSecret(),
+      // Incoming mail (Resend Receiving → /api/inbound): see src/pages/api/inbound.ts
+      RESEND_WEBHOOK_SECRET: optionalSecret(),
+      INBOUND_ADDRESSES: optionalSecret(),
+      INBOUND_FORWARD_TO: optionalSecret(),
     },
   },
 });

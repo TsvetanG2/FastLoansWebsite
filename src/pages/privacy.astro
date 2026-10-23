@@ -17,13 +17,14 @@ const toc = [
   { id: 'zhalba', label: 'Жалба до надзорния орган' },
   { id: 'promeni', label: 'Промени в политиката' },
 ];
+const crumbs = [{ name: 'Политика за поверителност', path: '/privacy' }]; // same trail for the visible breadcrumbs and the JSON-LD
 ---
 <Base
   title="Политика за поверителност | Royal Finance"
   description={`Как ${company.legalName} обработва личните данни, подадени чрез формата за кандидатстване на сайта ${company.brandName}.`}
-  crumbs={[{ name: 'Политика за поверителност', path: '/privacy' }]}
+  crumbs={crumbs}
 >
-  <LegalPage title="Политика за поверителност" toc={toc}>
+  <LegalPage crumbs={crumbs} title="Политика за поверителност" toc={toc}>
     <h2 id="koi-sme-nie">1. Кои сме ние</h2>
     <p>
       Администратор на личните Ви данни е {company.legalName} ({company.legalNameLatin}), ЕИК {company.eik},
@@ -99,7 +100,7 @@ const toc = [
       </li>
       <li>служителите на дружеството, които обработват заявки;</li>
       <li>
-        обработващи лични данни: Vercel Inc. (хостинг и анонимна статистика за посещенията, САЩ), Resend (изпращане на имейли, САЩ), Cloudflare (защита от
+        обработващи лични данни: Vercel Inc. (хостинг и анонимна статистика за посещенията, САЩ), Resend (изпращане на имейли и получаване на писмата до имейл адреса ни, САЩ), Cloudflare (защита от
         спам), OpenFreeMap (картата на страницата „Локация“), Upstash (ограничаване на броя заявки; регион в ЕС; съхранява само хеширани идентификатори за до 24 часа);
       </li>
       <li>държавни органи, когато законът го изисква.</li>
