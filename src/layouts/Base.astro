@@ -3,14 +3,28 @@ import '../styles/global.css';
 import Header from '../components/Header.astro';
 import Footer from '../components/Footer.astro';
 import Analytics from '@vercel/analytics/astro';
+import { breadcrumbs, canonicalUrl, financialService, jsonLd } from '../lib/seo';
+// Preload the subsets the first screen needs — same files the @font-face rules use. Cyrillic for
+// the Bulgarian text, Latin for digits, "€" and "Royal Finance" (otherwise a second swap shifts the layout).
+import manropeCyr from '@fontsource-variable/manrope/files/manrope-cyrillic-wght-normal.woff2?url';
+import manropeLat from '@fontsource-variable/manrope/files/manrope-latin-wght-normal.woff2?url';
+import playfairCyr from '@fontsource-variable/playfair-display/files/playfair-display-cyrillic-wght-normal.woff2?url';
+import playfairLat from '@fontsource-variable/playfair-display/files/playfair-display-latin-wght-normal.woff2?url';
 
 interface Props {
   title: string;
   description: string;
+  /** Subpage trail for BreadcrumbList, e.g. [{ name: 'Въпроси', path: '/faq' }] */
+  crumbs?: { name: string; path: string }[];
+  /** Extra JSON-LD objects for this page (e.g. FAQPage) */
+  schema?: object[];
+  /** 404 / maintenance: keep out of search results */
+  noindex?: boolean;
 }
-const { title, description } = Astro.props;
-const canonical = new URL(Astro.url.pathname, Astro.site);
+const { title, description, crumbs, schema = [], noindex = false } = Astro.props;
+const canonical = canonicalUrl(Astro.url.pathname);
 const ogImage = new URL('/og.png', Astro.site);
+const structured = noindex ? [] : [financialService(), ...(crumbs?.length ? [breadcrumbs(crumbs)] : []), ...schema];
 ---
 <!doctype html>
 <html lang="bg">
@@ -19,7 +33,8 @@ const ogImage = new URL('/og.png', Astro.site);
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <title>{title}</title>
     <meta name="description" content={description} />
-    <link rel="canonical" href={canonical} />
+    {noindex ? <meta name="robots" content="noindex" /> : <link rel="canonical" href={canonical} />}
+    {[manropeCyr, manropeLat, playfairCyr, playfairLat].map((href) => <link rel="preload" href={href} as="font" type="font/woff2" crossorigin />)}
     <meta name="theme-color" content="#0a0a0a" />
 
     <link rel="icon" href="/favicon.ico" sizes="any" />
@@ -36,6 +51,8 @@ const ogImage = new URL('/og.png', Astro.site);
     <meta property="og:image:width" content="1200" />
     <meta property="og:image:height" content="630" />
     <meta name="twitter:card" content="summary_large_image" />
+    <!-- Structured data: data blocks, not executed, so the strict script-src CSP does not apply -->
+    {structured.map((d) => <script type="application/ld+json" set:html={jsonLd(d)} />)}
 
   </head>
   <body>

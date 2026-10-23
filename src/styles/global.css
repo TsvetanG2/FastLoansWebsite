@@ -176,3 +176,39 @@ img, svg { display: block; max-width: 100%; }
     transition: opacity 0.6s ease !important;
   }
 }
+
+/* Long-form text pages (legal, FAQ, location) */
+.prose { max-width: calc(72ch + 2 * var(--gutter)); }
+.prose h2 {
+  font-size: 1.35rem;
+  color: var(--gold-2);
+  margin-top: 2.5rem;
+  scroll-margin-top: calc(var(--header-h) + 1rem);
+}
+.prose h3 { font-size: 1.05rem; margin-top: 1.5rem; }
+.prose p,
+.prose li,
+.prose td,
+.prose th { color: #cfc8bc; line-height: 1.7; }
+.prose p { margin-top: 0.9rem; }
+.prose ul { margin: 0.9rem 0 0; padding-left: 1.25rem; }
+.prose li + li { margin-top: 0.4rem; }
+.prose a { color: var(--gold-2); text-underline-offset: 3px; overflow-wrap: anywhere; }
+.prose strong { color: var(--text); }
+.prose .table-wrap { margin-top: 1rem; overflow-x: auto; }
+.prose table { width: 100%; border-collapse: collapse; font-size: 0.95rem; }
+.prose th,
+.prose td {
+  padding: 0.75rem 0.75rem 0.75rem 0;
+  border-bottom: 1px solid #2b2721;
+  text-align: left;
+  vertical-align: top;
+}
+.prose th { color: var(--text); font-weight: 600; }
+.prose dl { margin: 1rem 0 0; display: grid; gap: 0.6rem; }
+.prose dt { color: var(--text-muted); font-size: 0.85rem; }
+.prose dd { margin: 0; color: var(--text); }
+@media (min-width: 640px) {
+  .prose dl { grid-template-columns: max-content 1fr; column-gap: 1.5rem; }
+  .prose dt { padding-top: 0.15rem; }
+}

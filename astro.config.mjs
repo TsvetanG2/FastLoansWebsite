@@ -1,12 +1,19 @@
 // @ts-check
 import { defineConfig, envField } from 'astro/config';
 import vercel from '@astrojs/vercel';
+import sitemap from '@astrojs/sitemap';
 
 const optionalSecret = () => envField.string({ context: 'server', access: 'secret', optional: true });
 
 export default defineConfig({
   site: 'https://royalfinance.bg',
   output: 'static',
+  // One URL per page: /about, never /about/ (canonical URLs follow the same rule)
+  trailingSlash: 'never',
+  integrations: [
+    // 404 and maintenance are not real pages for search engines
+    sitemap({ filter: (page) => !/\/(404|maintenance)\/?$/.test(page) }),
+  ],
   // Earlier Bulgarian URLs → English slugs (301)
   redirects: {
     '/za-nas': '/about',
@@ -16,10 +23,15 @@ export default defineConfig({
   },
   // Functions run in fra1 (vercel.json) and may take at most 10 s
   adapter: vercel({ maxDuration: 10 }),
+  // Inline the CSS (allowed by the CSP: style-src 'unsafe-inline'): no render-blocking stylesheet
+  // requests. assetsInlineLimit: 0 below would otherwise push every stylesheet out to a file.
+  build: { inlineStylesheets: 'always' },
   vite: {
     // Never inline scripts (or fonts) into HTML: the CSP allows scripts only from 'self'
     // and fonts only from 'self', with no 'unsafe-inline' and no data: fonts.
     build: { assetsInlineLimit: 0 },
+    // MapLibre's worker is an ES module with imports
+    worker: { format: 'es' },
   },
   env: {
     schema: {
