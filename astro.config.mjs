@@ -29,7 +29,13 @@ export default defineConfig({
   vite: {
     // Never inline scripts (or fonts) into HTML: the CSP allows scripts only from 'self'
     // and fonts only from 'self', with no 'unsafe-inline' and no data: fonts.
-    build: { assetsInlineLimit: 0 },
+    build: {
+      assetsInlineLimit: 0,
+      // The only chunk over Vite's 500 kB default is MapLibre (~1.1 MB minified, ~290 kB gzip). It is
+      // loaded lazily on /location only (see OfficeMap.astro), so the warning is expected; every other
+      // chunk is under 40 kB. Raise this only for a reason like that.
+      chunkSizeWarningLimit: 1150,
+    },
     // MapLibre's worker is an ES module with imports
     worker: { format: 'es' },
   },
