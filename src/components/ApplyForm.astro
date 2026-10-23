@@ -375,9 +375,12 @@ const STEP_TITLES = ['Сума и срок', 'Лични данни', 'Адре�
   // step is shown, when layout already has the final size but the height
   // animation has not started, so both move together with the same curve.
   // Desktop: centre the card in the space below the sticky header (or pin its
-  // top under the header when it is taller than that). Mobile: bring the step
-  // label just below the header when it is out of view.
+  // top under the header when it is taller than that). Mobile: always bring the
+  // step label just below the header, so every step starts at the top of the screen.
   const isDesktop = matchMedia('(min-width: 1024px)');
+  // Touch screens: moving focus into a text field opens the on-screen keyboard, and the
+  // browser then scrolls to that field itself, overriding the scroll above.
+  const isTouch = matchMedia('(pointer: coarse)');
   function followCard() {
     const header = document.querySelector('header')?.getBoundingClientRect().height ?? 0;
     const card = form.parentElement!.getBoundingClientRect();
@@ -389,8 +392,8 @@ const STEP_TITLES = ['Сума и срок', 'Лични данни', 'Адре�
         : card.top + card.height / 2 - (header + room / 2);
     } else {
       const label = form.querySelector('.progress')!.getBoundingClientRect().top;
-      if (label >= header && label <= innerHeight / 2) return;
       delta = label - header - 16;
+      if (Math.abs(delta) < 8) return;
     }
     const max = document.documentElement.scrollHeight - innerHeight;
     scrollToY(Math.max(0, Math.min(max, scrollY + delta)), 360);
@@ -398,13 +401,16 @@ const STEP_TITLES = ['Сума и срок', 'Лични данни', 'Адре�
 
   // rAF-driven so it matches the card animation exactly (and is not affected by
   // the CSS `scroll-behavior: smooth`, which would fight per-frame scrolling).
+  let scrollRun = 0; // a newer scroll cancels the one still running
   function scrollToY(y: number, duration: number) {
     const y0 = scrollY;
     const d = y - y0;
     if (Math.abs(d) < 2) return;
+    const run = ++scrollRun;
     const t0 = performance.now();
     const ease = (t: number) => 1 - Math.pow(1 - t, 3);
     const frame = (now: number) => {
+      if (run !== scrollRun) return;
       const t = Math.min(1, (now - t0) / duration);
       scrollTo({ top: y0 + d * ease(t), behavior: 'instant' });
       if (t < 1) requestAnimationFrame(frame);
@@ -449,9 +455,19 @@ const STEP_TITLES = ['Сума и срок', 'Лични данни', 'Адре�
       steps.forEach((s, i) => (s.disabled = i + 1 !== step));
       followCard();
       if (focus) {
-        to.querySelector<HTMLElement>('input:not([type=hidden]):not([tabindex="-1"]), select')?.focus({ preventScroll: true });
+        if (isTouch.matches) {
+          // Focus the step itself (screen readers read its legend) without opening the keyboard;
+          // the keyboard opens when the visitor taps a field.
+          to.tabIndex = -1;
+          to.focus({ preventScroll: true });
+        } else {
+          to.querySelector<HTMLElement>('input:not([type=hidden]):not([tabindex="-1"]), select')?.focus({ preventScroll: true });
+        }
       }
-    }).finally(() => (animating = null));
+    })
+      // Mobile: closing the keyboard can shift the page during the animation — re-align once at the end
+      .then(() => { if (!isDesktop.matches) followCard(); })
+      .finally(() => (animating = null));
     return animating;
   }
 
@@ -636,6 +652,8 @@ const STEP_TITLES = ['Сума и срок', 'Лични данни', 'Адре�
     scroll-margin-top: 5.5rem;
   }
   .apply-form { scroll-margin-top: 5.5rem; }
+  /* Steps get focus programmatically on touch screens (no keyboard); no ring around the whole step */
+  .step:focus { outline: none; }
   @media (min-width: 640px) {
     .apply { padding: 2rem; }
   }

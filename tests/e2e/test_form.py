@@ -378,6 +378,20 @@ with sync_playwright() as p:
     gctx.close()
     reset_limits()
 
+    # Touch screen: each step starts right under the header, and no field is auto-focused
+    # (that would open the keyboard, which scrolls the page to the field by itself)
+    ctx = browser.new_context(viewport={'width': 390, 'height': 844}, is_mobile=True, has_touch=True)
+    page = ctx.new_page(); page.goto(BASE); page.wait_for_load_state('networkidle')
+    label_top = "Math.round(document.querySelector('#apply-form .progress').getBoundingClientRect().top - document.querySelector('header').getBoundingClientRect().height)"
+    page.locator('fieldset:not([disabled]) [data-action="next"]').tap(); settle(page); page.wait_for_timeout(300)
+    ok('touch: step 2 starts under the header', 8 <= page.evaluate(label_top) <= 24, str(page.evaluate(label_top)))
+    ok('touch: focus on the step, not a field (no keyboard)', page.evaluate("document.activeElement.matches('fieldset.step')"))
+    fill_personal(page)
+    page.evaluate('scrollBy(0, 300)')
+    page.locator('fieldset:not([disabled]) [data-action="next"]').tap(); settle(page); page.wait_for_timeout(300)
+    ok('touch: step 3 starts under the header', step(page) == '3' and 8 <= page.evaluate(label_top) <= 24, str(page.evaluate(label_top)))
+    ctx.close()
+
     browser.close()
 
 failed = [r for r in results if not r[1]]
