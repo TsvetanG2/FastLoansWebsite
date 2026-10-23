@@ -6,7 +6,7 @@ OUT = sys.argv[1] if len(sys.argv) > 1 else 'test-results'
 os.makedirs(OUT, exist_ok=True)
 PAGES = {
     '/privacy': 'Политика за поверителност',
-    '/about': 'За нас и информация за кредитора',
+    '/about': 'Информация за кредитора',
     '/disputes': 'Решаване на спорове',
     '/terms': 'Общи условия за ползване на сайта',
 }
@@ -47,7 +47,7 @@ with sync_playwright() as p:
         ok(f'[{label}] about agent data', all(x in t for x in ['„Глобъл Профинанс“ ЕООД', '208274496', 'бул. „Андрей Сахаров“ № 11', '+359 888 807 152', 'royalfinance@abv.bg', 'не отпуска кредити от свое име']))
         ok(f'[{label}] about lender data', all(x in t for x in ['„Тием Финанси“ ООД', '202786529', 'гр. Перник 2300, ул. „Кракра“, бл. 39', 'BGR00464', 'БНБ-119213/10.11.2022', '10.11.2022', 'финансов лизинг', 'чл. 3а от Закона за кредитните институции']))
         ok(f'[{label}] about: no TODO rows for missing lender contacts', 'null' not in t and pg.locator('#kreditor ~ dl dt', has_text='Телефон').count() == 0)
-        ok(f'[{label}] about: agent before lender', t.index('За нас') < t.index('Кредитор'))
+        ok(f'[{label}] about: agent before lender', t.index('1. Royal Finance') < t.index('2. Кредитор'))
         ok(f'[{label}] about: no visible TODO', '[TODO' not in t)
         ok(f'[{label}] about: questions go only to Royal Finance', 'се обръщайте към Royal Finance' in t and 'писмено до „Тием Финанси“' not in t)
         ok(f'[{label}] about BNB register link', pg.locator('a[href*="bnb.bg/RegistersAndServices"]').count() == 1)
@@ -81,7 +81,7 @@ with sync_playwright() as p:
         ok(f'[{label}] header has phone but no working hours', '+359 888 807 152' in pg.text_content('header') and '10:00' not in pg.text_content('header'))
         pg.goto(BASE + '/'); pg.wait_for_load_state('networkidle')
         menu = pg.eval_on_selector_all('header .nav-list > li:not(.nav-phone-mobile) > a', 'as => as.map(a => a.textContent.trim())')
-        ok(f'[{label}] header menu: Начало, За нас, Контакти', menu == ['Начало', 'За нас', 'Контакти'], str(menu))
+        ok(f'[{label}] header menu: Начало, Защо ние, Контакти', menu == ['Начало', 'Защо ние', 'Контакти'], str(menu))
         fnav = pg.eval_on_selector_all('footer nav[aria-labelledby="f-nav"] a', 'as => as.map(a => [a.textContent.trim(), a.getAttribute("href")])')
         ok(f'[{label}] footer nav has Локация and Въпроси after Контакти', fnav[-2:] == [['Локация', '/location'], ['Въпроси', '/faq']] and fnav[2][0] == 'Контакти', str(fnav))
         pg.goto(BASE + '/location'); pg.wait_for_load_state('networkidle')
@@ -109,7 +109,7 @@ with sync_playwright() as p:
         seen = []
         for js in ['0', "document.getElementById('about').offsetTop", 'document.body.scrollHeight']:
             pg.evaluate(f"scrollTo({{top: {js}, behavior: 'instant'}})"); pg.wait_for_timeout(200); seen.append(spy())
-        ok(f'[{label}] menu marks Начало → За нас → Контакти while scrolling', seen == ['Начало', 'За нас', 'Контакти'], str(seen))
+        ok(f'[{label}] menu marks Начало → Защо ние → Контакти while scrolling', seen == ['Начало', 'Защо ние', 'Контакти'], str(seen))
         pg.goto(BASE + '/privacy'); pg.wait_for_load_state('networkidle')
         ok(f'[{label}] no menu item marked on other pages', spy() == '')
         # Menu: smooth scroll to the section, address bar stays clean (no "#")

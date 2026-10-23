@@ -63,7 +63,7 @@ fp = next((d for d in faq_ld if d['@type'] == 'FAQPage'), None)
 ok('/faq: FAQPage with 8–12 questions', fp and 8 <= len(fp['mainEntity']) <= 12, fp and str(len(fp['mainEntity'])))
 home = (STATIC / 'index.html').read_text(encoding='utf-8')
 ok('home: H1 „Бързо финансиране“ and no „Бързи кредити в Младост“ in the title (client decision)', re.search(r'<h1[^>]*>Бързо финансиране</h1>', home) and 'Бързи кредити в Младост' not in re.search(r'<title>([^<]*)', home).group(1))
-ok('home: intro text (client copy)', re.search(r'class="lead"[^>]*>\s*Бърз кредит, кандидатствай онлайн', home))
+ok('home: intro text (client copy)', re.search(r'class="lead"[^>]*>\s*Бърз кредит, кандидатствайте онлайн', home))
 ok('home: office address + hours visible', 'бул. „Андрей Сахаров“ № 11' in home and '10:00' in home)
 
 robots = (STATIC / 'robots.txt').read_text()

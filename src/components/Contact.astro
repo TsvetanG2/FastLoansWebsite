@@ -15,8 +15,8 @@ const hours = company.workingHours.split(';').map((part) => {
   <hr class="gold-rule top" />
   <div class="container grid" data-reveal>
     <div class="intro">
-      <h2 class="section-title" id="contact-title">Имаш въпроси?</h2>
-      <p class="sub">Свържи се с нас. Ще ти помогнем да избереш сума и срок.</p>
+      <h2 class="section-title" id="contact-title">Имате въпроси?</h2>
+      <p class="sub">Свържете се с нас. Ще Ви помогнем да изберете сума и срок.</p>
     </div>
 
     <ul class="list">
@@ -49,6 +49,7 @@ const hours = company.workingHours.split(';').map((part) => {
         <div>
           <span class="k">Работно време</span>
           <dl class="hours">{hours.map(([d, t]) => <><dt>{d}</dt><dd>{t}</dd></>)}</dl>
+          <span class="holiday">{company.holidayHours}</span>
         </div>
       </li>
     </ul>
@@ -92,6 +93,7 @@ const hours = company.workingHours.split(';').map((part) => {
     line-height: 1.45;
   }
   .hours dt { color: var(--text-muted); }
+  .holiday { margin-top: 0.3rem; font-size: 0.85rem; color: var(--text-muted); }
   .hours dd { margin: 0; color: var(--text); white-space: nowrap; }
 
   @media (min-width: 640px) {

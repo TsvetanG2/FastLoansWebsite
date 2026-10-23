@@ -46,7 +46,7 @@ describe('confirmation email', () => {
     const a = confirmationEmail();
     const b = confirmationEmail();
     expect(a).toEqual(b); // takes no input at all
-    expect(a.text).toContain('Получихме кандидатурата ти. Наш консултант ще се свърже с теб скоро.');
+    expect(a.text).toContain('Получихме кандидатурата Ви. Наш консултант ще се свърже с Вас скоро.');
     expect((a.html + a.text + a.subject).toLowerCase()).not.toMatch(/одобрен|приет/);
   });
 });

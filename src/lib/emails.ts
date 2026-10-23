@@ -100,19 +100,19 @@ export function leadEmail(a: Application, submittedAt: Date) {
 
 /** Confirmation to the applicant. Deliberately contains no personal data. */
 export function confirmationEmail() {
-  const subject = 'Получихме кандидатурата ти';
+  const subject = 'Получихме кандидатурата Ви';
   const html = layout(
     subject,
-    `<h1 style="margin:0 0 16px 0;font-family:${SERIF};font-size:22px;font-weight:normal;color:${C.goldLight};">Благодарим ти!</h1>
-<p style="margin:0 0 16px 0;font-family:${SANS};font-size:15px;line-height:24px;color:${C.text};">Получихме кандидатурата ти. Наш консултант ще се свърже с теб скоро.</p>
-<p style="margin:0;font-family:${SANS};font-size:14px;line-height:22px;color:${C.muted};">Ако имаш въпроси, обади ни се на <a href="${site.phone.href}" style="color:${C.gold};text-decoration:none;">${esc(site.phone.display)}</a> (${esc(site.hours)}).</p>`,
+    `<h1 style="margin:0 0 16px 0;font-family:${SERIF};font-size:22px;font-weight:normal;color:${C.goldLight};">Благодарим Ви!</h1>
+<p style="margin:0 0 16px 0;font-family:${SANS};font-size:15px;line-height:24px;color:${C.text};">Получихме кандидатурата Ви. Наш консултант ще се свърже с Вас скоро.</p>
+<p style="margin:0;font-family:${SANS};font-size:14px;line-height:22px;color:${C.muted};">Ако имате въпроси, обадете ни се на <a href="${site.phone.href}" style="color:${C.gold};text-decoration:none;">${esc(site.phone.display)}</a> (${esc(site.hours)}).</p>`,
   );
   const text = [
-    'Благодарим ти!',
+    'Благодарим Ви!',
     '',
-    'Получихме кандидатурата ти. Наш консултант ще се свърже с теб скоро.',
+    'Получихме кандидатурата Ви. Наш консултант ще се свърже с Вас скоро.',
     '',
-    `Ако имаш въпроси, обади ни се на ${site.phone.display} (${site.hours}).`,
+    `Ако имате въпроси, обадете ни се на ${site.phone.display} (${site.hours}).`,
     '',
     agentStatement,
   ].join('\n');

@@ -1,23 +1,24 @@
 ---
 const steps = [
-  { title: 'Попълни формата', text: 'Избери сума и срок и остави данни за контакт.' },
-  { title: 'Получете отговор до 10 минути', text: 'Наш консултант се свързва с теб по телефона.' },
-  { title: 'Вземи своя кредит', text: 'След одобрение ще ти обясним как да получиш сумата.' },
+  // Client copy (2026-10-23)
+  { title: 'Кандидатствайте онлайн', text: 'Изберете сума и срок, попълнете онлайн формата.' },
+  { title: 'Получете одобрение', text: 'След разглеждане на Вашата кандидатура ще получите информация относно нея.' },
+  { title: 'Вземете желаната сума', text: 'След одобрение получавате желаната сума!' },
 ];
 ---
 <section class="section steps" aria-labelledby="steps-title">
   <hr class="gold-rule top" />
   <div class="container" data-reveal>
     <div class="intro">
-      <h2 class="section-title" id="steps-title">Как да кандидатстваш?</h2>
-      <p>Три стъпки до твоя кредит.</p>
+      <h2 class="section-title" id="steps-title">Как да кандидатствате?</h2>
+      <p>Три стъпки до Вашия кредит.</p>
     </div>
 
-    <!-- A real sequence, so the numbers carry meaning; a gold line joins them -->
+    <!-- A real sequence (an ordered list for screen readers); gold dots on a line show the order -->
     <ol class="timeline">
-      {steps.map(({ title, text }, i) => (
+      {steps.map(({ title, text }) => (
         <li>
-          <span class="num" aria-hidden="true">{i + 1}</span>
+          <span class="dot" aria-hidden="true"></span>
           <h3>{title}</h3>
           <p>{text}</p>
         </li>
@@ -34,7 +35,7 @@ const steps = [
   .intro p { color: var(--text-muted); }
 
   .timeline {
-    --num: 3rem;
+    --num: 0.85rem; /* the dot */
     list-style: none;
     margin: 0;
     padding: 0;
@@ -42,35 +43,32 @@ const steps = [
     gap: 2rem;
   }
 
-  /* Mobile: vertical, number in a left column, line running down between numbers */
+  /* Mobile: vertical, dot in a left column, line running down between dots */
   li {
     position: relative;
     display: grid;
     grid-template-columns: var(--num) 1fr;
     align-content: start; /* shorter steps must not stretch their rows */
-    column-gap: 1.25rem;
+    column-gap: 1rem;
     row-gap: 0.35rem;
   }
   li:not(:last-child)::after {
     content: '';
     position: absolute;
     left: calc(var(--num) / 2);
-    top: calc(var(--num) + 0.5rem);
-    bottom: calc(-2rem + 0.5rem);
+    top: calc(0.45rem + var(--num) + 0.35rem);
+    bottom: calc(-2rem + 0.45rem - 0.35rem);
     width: 1px;
     background: linear-gradient(var(--gold-1), rgba(201, 162, 74, 0.15));
   }
-  .num {
+  .dot {
     grid-row: span 2;
-    display: grid;
-    place-items: center;
+    margin-top: 0.45rem; /* level with the heading's first line */
     width: var(--num);
     height: var(--num);
     border: 1px solid var(--gold-1);
     border-radius: 50%;
-    background: #0d0c0a;
-    color: var(--gold-2);
-    font: 600 1.35rem/1 var(--font-serif);
+    background: radial-gradient(circle, var(--gold-2) 0 35%, transparent 40%), #0d0c0a;
   }
   h3 {
     align-self: center;
@@ -81,17 +79,17 @@ const steps = [
   }
   li p { grid-column: 2; color: var(--text-muted); max-width: 34ch; }
 
-  /* Desktop: three equal columns, numbers on one line joined left to right */
+  /* Desktop: three equal columns, dots on one line joined left to right */
   @media (min-width: 1024px) {
     .intro { margin-bottom: 3.5rem; }
     .timeline { grid-template-columns: repeat(3, 1fr); gap: 3rem; }
     li { grid-template-columns: 1fr; row-gap: 0.6rem; }
-    .num { grid-row: auto; margin-bottom: 0.9rem; }
+    .dot { grid-row: auto; margin: 0 0 0.9rem; }
     h3 { align-self: start; }
     li p { grid-column: 1; }
     li:not(:last-child)::after {
-      left: calc(var(--num) + 1rem);
-      right: -2rem;
+      left: calc(var(--num) + 0.6rem);
+      right: -2.4rem;
       top: calc(var(--num) / 2);
       bottom: auto;
       width: auto;

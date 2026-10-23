@@ -15,7 +15,7 @@ export const site = {
 /** Header menu: the sections of the home page. */
 export const nav = [
   { label: 'Начало', href: '/' },
-  { label: 'За нас', href: '/#about' },
+  { label: 'Защо ние', href: '/#about' },
   { label: 'Контакти', href: '/#contact' },
 ] as const;
 

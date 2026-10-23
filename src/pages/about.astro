@@ -5,7 +5,7 @@ import { BNB_REGISTER_URL, company, lender } from '../data/company';
 
 // DRAFT: must be reviewed by the client's lawyer before launch (see LEGAL_TODO.md).
 const toc = [
-  { id: 'agent', label: 'За нас' },
+  { id: 'agent', label: 'Royal Finance' },
   { id: 'kreditor', label: 'Кредитор' },
   { id: 'nadzor', label: 'Надзорни органи' },
 ];
@@ -13,12 +13,12 @@ const toc = [
 const lenderWebsite = lender.website.startsWith('[TODO') ? null : lender.website;
 ---
 <Base
-  title="За нас и информация за кредитора | Royal Finance"
+  title="Информация за кредитора | Royal Finance"
   description={`${company.brandName} (${company.legalName}) е агент на ${lender.legalName}. Данни за агента и за кредитора, регистрация в БНБ.`}
-  crumbs={[{ name: 'За нас и информация за кредитора', path: '/about' }]}
+  crumbs={[{ name: 'Информация за кредитора', path: '/about' }]}
 >
-  <LegalPage title="За нас и информация за кредитора" toc={toc}>
-    <h2 id="agent">1. За нас</h2>
+  <LegalPage title="Информация за кредитора" toc={toc}>
+    <h2 id="agent">1. Royal Finance</h2>
     <p>
       {company.brandName} е търговска марка на {company.legalName}. Дружеството действа като агент на
       {' '}{lender.legalName} и не отпуска кредити от свое име. Кредитите се отпускат от {lender.legalName}.

@@ -1,0 +1,65 @@
+---
+// Client copy (2026-10-23). Formal „Вие“ with capital „Ви“, as everywhere on the site.
+const items = [
+  {
+    title: 'Непредвидени разходи',
+    text: 'Ако имате непредвидени или спешни разходи като ремонт на автомобил, разходи, свързани с Вашето здраве, или други ситуации, бързият кредит ще Ви помогне с тях!',
+  },
+  {
+    title: 'Важно събитие',
+    text: 'Сватба, абитуриентски бал, обучение или курс, за които сумата Ви трябва малко по-рано.',
+  },
+  {
+    title: 'Необходимост от допълнителни средства',
+    text: 'Липсата на средства е непредвидена и някой път неотложна. Точно заради това ние сме на Ваше разположение.',
+  },
+];
+---
+<!-- id="about": the menu's „Защо ние“ lands here, so this section and „Защо да изберете“ below are both in view -->
+<section class="use-cases" id="about" aria-labelledby="use-cases-title">
+  <hr class="gold-rule" />
+  <div class="container inner" data-reveal>
+    <div class="head">
+      <h2 class="section-title" id="use-cases-title">Как бързото финансиране Ви помага</h2>
+      <p>
+        Понякога разход идва в неподходящ момент. Бързото финансиране е Вашето решение! Ето някои от тях:
+      </p>
+    </div>
+    <ul class="list">
+      {items.map(({ title, text }) => (
+        <li>
+          <h3>{title}</h3>
+          <p>{text}</p>
+        </li>
+      ))}
+    </ul>
+  </div>
+  <hr class="gold-rule" />
+</section>
+
+<style>
+  .use-cases { background: #0d0c0a; }
+  .inner { padding-block: 3rem; display: grid; gap: 2rem; }
+  .head, .list { max-width: 52rem; }
+  .head { display: grid; gap: 0.75rem; }
+  .head p { color: var(--text-muted); }
+  /* One under another; a thin gold line on the left ties each case to the heading */
+  .list {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+    display: grid;
+    gap: 1.5rem;
+  }
+  li {
+    display: grid;
+    gap: 0.4rem;
+    padding-left: 1.25rem;
+    border-left: 1px solid var(--border-gold);
+  }
+  h3 { font-family: var(--font-sans); font-size: 1.05rem; font-weight: 700; color: var(--text); }
+  li p { font-size: 0.95rem; line-height: 1.6; color: var(--text-muted); max-width: 62ch; }
+  @media (min-width: 1024px) {
+    .inner { padding-block: 3.5rem; gap: 2.25rem; }
+  }
+</style>
