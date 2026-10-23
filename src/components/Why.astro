@@ -1,13 +1,15 @@
 ---
 import { CircleCheck } from '@lucide/astro';
 
+// Client copy (2026-10-23). Not „Без такси“ and not „100% онлайн“: a consumer credit has costs
+// (ЗПК), and the contract/ID check may happen in the office — both would be misleading.
 const points = [
-  'Кандидатстване онлайн',
-  'Бързо одобрение до 10 минути',
-  'Срок от 3 до 60 месеца',
-  // TODO-CLAIM: the two points below need client confirmation
-  'Поверителност на личните данни',
-  'Индивидуален подход',
+  'Бързо и лесно одобрение',
+  // TODO-CLAIM: the three points below need the client's written confirmation (LEGAL_TODO.md)
+  'Конфиденциалност и сигурност',
+  'Индивидуални условия',
+  'Без скрити разходи',
+  'Онлайн кандидатстване',
 ];
 ---
 <section class="section why" aria-labelledby="why-title">
