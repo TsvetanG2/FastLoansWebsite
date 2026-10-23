@@ -38,9 +38,11 @@ export const company = {
     { days: ['Saturday'], opens: '10:00', closes: '16:00' },
   ],
   holidayHours: 'В официалните празници – намалено работно време', // TODO: конкретните часове
-  email: 'royalfinance@abv.bg',
-  complaintsEmail: 'royalfinance@abv.bg',
-  privacyEmail: 'royalfinance@abv.bg',
+  // Public address on the domain; Resend forwards it to the office mailbox (/api/inbound,
+  // INBOUND_FORWARD_TO in Vercel). Client decision 2026-10-24.
+  email: 'finance@royalfinance.bg',
+  complaintsEmail: 'finance@royalfinance.bg',
+  privacyEmail: 'finance@royalfinance.bg',
   dpo: null as { name: string; email: string } | null, // нямат ДЗЛД — в политиката се посочва само privacyEmail
   role: 'agent', // „Глобъл Профинанс“ е агент; кредитите се отпускат от кредитора (lender)
   retention: {

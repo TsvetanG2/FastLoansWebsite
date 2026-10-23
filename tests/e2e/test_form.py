@@ -225,6 +225,7 @@ with sync_playwright() as p:
             conf = next(e for e in s if e['kind'] == 'confirm')
             ok(f'[{label}] lead subject', lead['subject'] == 'Нова заявка: 5 000 € / 24 мес. — Иван Петров', lead['subject'])
             ok(f'[{label}] lead reply_to = applicant', lead.get('reply_to') in ('delivered+applicant@resend.dev', ['delivered+applicant@resend.dev']))
+            ok(f'[{label}] confirmation reply_to = finance@royalfinance.bg', conf.get('reply_to') in ('finance@royalfinance.bg', ['finance@royalfinance.bg']), str(conf.get('reply_to')))
             ok(f'[{label}] lead has html + text', bool(lead.get('html')) and bool(lead.get('text')))
             want = ['5 000 €', '24 месеца', 'Име: Иван', 'Фамилия: Петров', '+359888123456', 'delivered+applicant@resend.dev',
                     'Рефинансиране на други задължения', 'Град: Бяла (обл. Русе)', 'ж.к. Младост 1, бл. 79', 'ул. Витоша 5',

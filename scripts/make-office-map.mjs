@@ -47,7 +47,7 @@ const tiles = [];
 for (let tx = tx0; tx <= tx1; tx++) {
   for (let ty = ty0; ty <= ty1; ty++) {
     const url = `https://tile.openstreetmap.org/${Z}/${tx}/${ty}.png`;
-    const res = await fetch(url, { headers: { 'User-Agent': 'RoyalFinanceSite/1.0 (royalfinance@abv.bg) one-off static map' } });
+    const res = await fetch(url, { headers: { 'User-Agent': 'RoyalFinanceSite/1.0 (finance@royalfinance.bg) one-off static map' } });
     if (!res.ok) throw new Error(`${url} → ${res.status}`);
     tiles.push({ input: Buffer.from(await res.arrayBuffer()), left: (tx - tx0) * TILE, top: (ty - ty0) * TILE });
   }

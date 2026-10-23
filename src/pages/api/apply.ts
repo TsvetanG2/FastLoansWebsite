@@ -161,6 +161,7 @@ export const POST: APIRoute = async ({ request, clientAddress }) => {
       const { data, error } = await resend.emails.send({
         from: EMAIL_FROM,
         to: application.email,
+        replyTo: company.email, // the applicant's reply reaches the office (finance@ → forwarded)
         subject: confirmation.subject,
         html: confirmation.html,
         text: confirmation.text,
