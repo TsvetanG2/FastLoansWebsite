@@ -14,7 +14,7 @@ import {
 import { Resend } from 'resend';
 import { FIELDS, requestSchema, type Field, type FieldErrors } from '../../lib/application';
 import { company } from '../../data/company';
-import { confirmationEmail, leadEmail } from '../../lib/emails';
+import { confirmationEmail, emailLogoAttachment, leadEmail } from '../../lib/emails';
 import { checkLimits } from '../../lib/rate-limit';
 import { allowedHostnames, allowedOrigins, checkRequest, readLimitedBody } from '../../lib/security';
 import { verifyTurnstile } from '../../lib/turnstile';
@@ -140,6 +140,7 @@ export const POST: APIRoute = async ({ request, clientAddress }) => {
       subject: lead.subject,
       html: lead.html,
       text: lead.text,
+      attachments: [emailLogoAttachment],
     });
     if (error || !data) {
       log('lead_failed');
@@ -163,6 +164,7 @@ export const POST: APIRoute = async ({ request, clientAddress }) => {
         subject: confirmation.subject,
         html: confirmation.html,
         text: confirmation.text,
+        attachments: [emailLogoAttachment],
       });
       log(error || !data ? 'confirmation_failed' : 'confirmation_sent');
     } catch {

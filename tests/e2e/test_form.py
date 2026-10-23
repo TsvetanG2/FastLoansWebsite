@@ -235,7 +235,11 @@ with sync_playwright() as p:
             body = conf['html'] + conf['text'] + conf['subject']
             ok(f'[{label}] confirmation text', 'Получихме кандидатурата Ви. Наш консултант ще се свърже с Вас скоро.' in conf['text'])
             ok(f'[{label}] confirmation has no personal data', not any(x in body for x in ['5 000', '24 мес', 'Иван', 'Петров', '888123456', 'Шипка', 'Витоша', 'Шофьор', 'Бяла']))
-            ok(f'[{label}] emails carry agent statement', 'Royal Finance е търговска марка на „Глобъл Профинанс“ ЕООД, която действа като агент на „Тием Финанси“ ООД, ЕИК 202786529, вписано в регистъра на финансовите институции към БНБ под № BGR00464.' in conf['text'] and 'агент на „Тием Финанси“ ООД' in lead['html'])
+            ok(f'[{label}] emails carry agent statement', 'Royal Finance е търговска марка на „Глобъл Профинанс“ ЕООД, която действа като агент на „Тием Финанси“ ООД, ЕИК 202786529, вписано в регистъра на финансовите институции към БНБ под № BGR00464.' in conf['text'] and 'агент на „Тием Финанси“ ООД' in conf['html'])
+            ok(f'[{label}] office email has no agent disclosure (internal)', 'агент на' not in lead['html'])
+            for e in (lead, conf):
+                att = e.get('attachments') or []
+                ok(f"[{label}] {e['kind']}: logo embedded (cid), not loaded from a server", 'cid:rf-logo' in e['html'] and any(a.get('content_id') == 'rf-logo' or a.get('contentId') == 'rf-logo' for a in att) and 'src="http' not in e['html'], str([{k: v for k, v in a.items() if k != 'content'} for a in att]))
             ok(f'[{label}] confirmation never says одобрена/приета', not any(x in body.lower() for x in ['одобрен', 'приет']))
         ok(f'[{label}] no console errors', not errors, '; '.join(errors))
         ctx.close()
