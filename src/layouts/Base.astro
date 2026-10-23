@@ -66,14 +66,36 @@ const structured = noindex ? [] : [financialService(), ...(crumbs?.length ? [bre
       const io = new IntersectionObserver(
         (entries) => {
           for (const e of entries) {
-            if (!e.isIntersecting) continue;
+            // Also reveal sections already scrolled past: a jump (End key, footer link) can skip
+            // over a section without it ever intersecting, which would leave it hidden.
+            if (!e.isIntersecting && e.boundingClientRect.top > 0) continue;
             e.target.classList.add('is-visible');
             io.unobserve(e.target);
           }
         },
         { rootMargin: '0px 0px -12% 0px', threshold: 0.1 },
       );
-      document.querySelectorAll('[data-reveal]').forEach((el) => io.observe(el));
+      const pending = new Set(document.querySelectorAll('[data-reveal]'));
+      pending.forEach((el) => io.observe(el));
+      // A jump from below the screen to above it never makes the section intersect, so the
+      // observer stays silent: on scroll, reveal anything that is already above the fold.
+      let ticking = false;
+      const catchUp = () => {
+        ticking = false;
+        for (const el of pending) {
+          if (el.classList.contains('is-visible')) { pending.delete(el); continue; }
+          if (el.getBoundingClientRect().top < 0) {
+            el.classList.add('is-visible');
+            io.unobserve(el);
+            pending.delete(el);
+          }
+        }
+        if (!pending.size) removeEventListener('scroll', onScroll);
+      };
+      const onScroll = () => {
+        if (!ticking) { ticking = true; requestAnimationFrame(catchUp); }
+      };
+      addEventListener('scroll', onScroll, { passive: true });
     </script>
     <!-- Vercel Web Analytics: cookieless, same-origin script (/_vercel/insights) — fits the CSP -->
     <Analytics />
