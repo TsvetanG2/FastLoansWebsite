@@ -36,7 +36,7 @@ Home page:
 - One `<h1>` containing „бързи кредити“ and „Младост“/„София“ naturally, e.g. „Бързи кредити в Младост, София“. The emotional headline from the design can stay as a visual line above/below it.
 - H2s per section; the office address and hours appear as visible text on the home page (not only in the footer).
 
-Every page: unique title + description, canonical URL (`https://royalfinance.bg/...`, no `www`, trailing-slash policy consistent), Open Graph + Twitter tags, `lang="bg"`.
+Every page: unique title + description, canonical URL (`https://www.royalfinance.bg/...` — **www is primary**, changed by the client on 2026-10-24; the apex redirects to it; trailing-slash policy consistent), Open Graph + Twitter tags, `lang="bg"`.
 
 Redirect `www.royalfinance.bg` → `royalfinance.bg` (301) and http → https.
 

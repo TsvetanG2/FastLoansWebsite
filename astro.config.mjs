@@ -6,7 +6,7 @@ import sitemap from '@astrojs/sitemap';
 const optionalSecret = () => envField.string({ context: 'server', access: 'secret', optional: true });
 
 export default defineConfig({
-  site: 'https://royalfinance.bg',
+  site: 'https://www.royalfinance.bg', // www is the primary domain; royalfinance.bg redirects to it (Vercel)
   output: 'static',
   // One URL per page: /about, never /about/ (canonical URLs follow the same rule)
   trailingSlash: 'never',

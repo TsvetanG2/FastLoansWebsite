@@ -2,7 +2,7 @@
 // Missing data (photos, geo, profiles) is simply left out until the client supplies it.
 import { company } from '../data/company';
 
-export const SITE = 'https://royalfinance.bg';
+export const SITE = 'https://www.royalfinance.bg'; // primary domain (apex redirects here)
 
 /** Absolute, canonical URL: no trailing slash except for the home page. */
 export function canonicalUrl(pathname: string): string {

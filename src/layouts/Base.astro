@@ -24,11 +24,11 @@ interface Props {
 const { title, description, crumbs, schema = [], noindex = false } = Astro.props;
 const canonical = canonicalUrl(Astro.url.pathname);
 // The share image must be fetchable by Facebook/Viber/WhatsApp, so it uses the address the site is
-// really served from: Vercel's production domain at build time (the *.vercel.app one until
-// royalfinance.bg is connected, then royalfinance.bg automatically). Canonical stays royalfinance.bg.
-const servedFrom = process.env.VERCEL_PROJECT_PRODUCTION_URL
-  ? `https://${process.env.VERCEL_PROJECT_PRODUCTION_URL}`
-  : Astro.site;
+// really served from. Until a custom domain is connected, Vercel's production URL is *.vercel.app;
+// after that it is the shortest custom domain (royalfinance.bg, which only redirects), so the
+// primary www address (Astro.site, same as canonical) is used instead.
+const prodHost = process.env.VERCEL_PROJECT_PRODUCTION_URL;
+const servedFrom = prodHost?.endsWith('.vercel.app') ? `https://${prodHost}` : Astro.site;
 const ogImage = new URL('/og.png', servedFrom);
 const ogUrl = new URL(new URL(canonical).pathname, servedFrom).href; // same path as canonical
 const structured = noindex ? [] : [financialService(), ...(crumbs?.length ? [breadcrumbs(crumbs)] : []), ...schema];

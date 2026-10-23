@@ -3,7 +3,7 @@ import json, re, sys, pathlib
 
 OUT = pathlib.Path('.vercel/output')
 STATIC = OUT / 'static'
-SITE = 'https://royalfinance.bg'
+SITE = 'https://www.royalfinance.bg'
 results = []
 
 
@@ -40,6 +40,13 @@ for url, path in sorted(pages.items()):
         ok(f'{url}: FinancialService JSON-LD', 'FinancialService' in types, str(types))
         if url != '/':
             ok(f'{url}: BreadcrumbList JSON-LD', 'BreadcrumbList' in types, str(types))
+            # Visible breadcrumbs show the same trail as the JSON-LD (names and links)
+            bl = next((d for d in data if d.get('@type') == 'BreadcrumbList'), {})
+            ld_names = [i['name'] for i in bl.get('itemListElement', [])]
+            nav = re.search(r'<nav class="crumbs"[^>]*>(.*?)</nav>', html, re.S)
+            shown = [re.sub(r'<[^>]+>', '', li).strip() for li in re.findall(r'<li[^>]*>(.*?)</li>', nav.group(1), re.S)] if nav else []
+            ok(f'{url}: visible breadcrumbs match JSON-LD', shown == ld_names and len(shown) >= 2, f'{shown} vs {ld_names}')
+            ok(f'{url}: breadcrumb "Начало" links home, current page not a link', bool(nav) and 'href="/"' in nav.group(1) and 'aria-current="page"' in nav.group(1) and nav.group(1).count('<a ') == len(shown) - 1)
         fs = next((d for d in data if d.get('@type') == 'FinancialService'), {})
         ok(f'{url}: NAP in JSON-LD', fs.get('name') == 'Royal Finance' and fs.get('telephone') == '+359888807152'
            and fs.get('address', {}).get('streetAddress') == 'бул. „Андрей Сахаров“ № 11'

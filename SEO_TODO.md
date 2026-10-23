@@ -14,7 +14,7 @@
       Никога не купувайте, не пишете и не награждавайте ревюта.
 - [ ] **Bing Places**, **Apple Business Connect**, **Waze** — същият NAP.
 - [ ] 2–4 подходящи български каталога (напр. goldenpages.bg) — същият NAP. Качество пред количество.
-- [ ] **Google Search Console** + **Bing Webmaster Tools:** потвърди домейна през DNS и подай `https://royalfinance.bg/sitemap-index.xml`.
+- [ ] **Google Search Console** + **Bing Webmaster Tools:** потвърди домейна през DNS и подай `https://www.royalfinance.bg/sitemap-index.xml`.
 - [ ] Facebook страница със същия NAP → после връзката влиза в `sameAs` в JSON-LD (кажи ми линка).
 - [ ] Всеки месец: заявките в Search Console, нови въпроси в `/faq` от реални клиенти, снимки и публикации в профила.
 - [ ] Реални обеми на ключовите думи от **Google Keyword Planner** (безплатен с Google Ads акаунт; локация София/България).
@@ -27,8 +27,8 @@
 
 ## Добавени при изпълнението
 
-- [ ] **Vercel → Settings → Domains:** добави `royalfinance.bg` и `www.royalfinance.bg`; за `www` избери
-      „Redirect to royalfinance.bg“ (301/308). HTTPS и пренасочването от http Vercel прави автоматично.
+- [x] **Vercel → Settings → Domains:** `royalfinance.bg` и `www.royalfinance.bg`; основният е **www**, `royalfinance.bg`
+      пренасочва към него (решение на клиента, 24.10.2026). HTTPS и пренасочването от http Vercel прави автоматично.
 - [ ] **Пинът на картата** е от OpenStreetMap (бул. Андрей Сахаров 11 → 42.6524536, 23.3728051) — потвърди, че е точно
       на входа. За смяна: `geo` в `src/data/company.ts` + `node scripts/make-office-map.mjs <lat> <lon>`.
 - [ ] Когато има **Google Business Profile**: линка към профила (за `sameAs`).
