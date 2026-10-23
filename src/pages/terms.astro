@@ -13,13 +13,14 @@ const toc = [
   { id: 'otgovornost', label: 'Ограничаване на отговорността' },
   { id: 'pravo', label: 'Приложимо право и спорове' },
 ];
+const crumbs = [{ name: 'Общи условия', path: '/terms' }]; // same trail for the visible breadcrumbs and the JSON-LD
 ---
 <Base
   title="Общи условия | Royal Finance"
   description={`Общи условия за ползване на сайта ${company.brandName}: кой предоставя сайта, заявката за кредит, авторски права и приложимо право.`}
-  crumbs={[{ name: 'Общи условия', path: '/terms' }]}
+  crumbs={crumbs}
 >
-  <LegalPage title="Общи условия за ползване на сайта" toc={toc}>
+  <LegalPage crumbs={crumbs} title="Общи условия за ползване на сайта" toc={toc}>
     <h2 id="dostavchik">1. Кой предоставя сайта</h2>
     <p>
       Сайтът {company.brandName} се предоставя от {company.legalName} ({company.legalNameLatin}),

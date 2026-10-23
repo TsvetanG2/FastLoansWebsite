@@ -11,13 +11,14 @@ const toc = [
 ];
 // The lender's website is shown only once the client supplies it (no visible TODO)
 const lenderWebsite = lender.website.startsWith('[TODO') ? null : lender.website;
+const crumbs = [{ name: 'Информация за кредитора', path: '/about' }]; // same trail for the visible breadcrumbs and the JSON-LD
 ---
 <Base
   title="Информация за кредитора | Royal Finance"
   description={`${company.brandName} (${company.legalName}) е агент на ${lender.legalName}. Данни за агента и за кредитора, регистрация в БНБ.`}
-  crumbs={[{ name: 'Информация за кредитора', path: '/about' }]}
+  crumbs={crumbs}
 >
-  <LegalPage title="Информация за кредитора" toc={toc}>
+  <LegalPage crumbs={crumbs} title="Информация за кредитора" toc={toc}>
     <h2 id="agent">1. Royal Finance</h2>
     <p>
       {company.brandName} е търговска марка на {company.legalName}. Дружеството действа като агент на

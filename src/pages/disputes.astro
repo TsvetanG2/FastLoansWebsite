@@ -11,13 +11,14 @@ const toc = [
   { id: 'kzp', label: 'Комисия за защита на потребителите' },
   { id: 'aris', label: 'Алтернативно решаване на спорове' },
 ];
+const crumbs = [{ name: 'Решаване на спорове', path: '/disputes' }]; // same trail for the visible breadcrumbs and the JSON-LD
 ---
 <Base
   title="Решаване на спорове | Royal Finance"
   description={`Как да подадете жалба до ${company.legalName} и към кои органи можете да се обърнете.`}
-  crumbs={[{ name: 'Решаване на спорове', path: '/disputes' }]}
+  crumbs={crumbs}
 >
-  <LegalPage title="Решаване на спорове" toc={toc}>
+  <LegalPage crumbs={crumbs} title="Решаване на спорове" toc={toc}>
     <h2 id="zhalba">1. Как да подадете жалба</h2>
     <p>
       Всички жалби, включително свързаните с договора за кредит, се подават до {company.brandName}

@@ -12,13 +12,14 @@ const hours = company.workingHours.split(';').map((part) => {
   const [days, time] = part.trim().split(/:\s(.+)/);
   return [days[0].toUpperCase() + days.slice(1), time] as const;
 });
+const crumbs = [{ name: 'Локация', path: '/location' }]; // same trail for the visible breadcrumbs and the JSON-LD
 ---
 <Base
   title="Локация — бул. „Андрей Сахаров“ № 11 | Royal Finance"
   description="Офисът на Royal Finance е на бул. „Андрей Сахаров“ № 11, ж.к. Младост 1, София. Адрес, карта, работно време и какво да носите."
-  crumbs={[{ name: 'Локация', path: '/location' }]}
+  crumbs={crumbs}
 >
-  <ContentPage
+  <ContentPage crumbs={crumbs}
     title="Бързо финансиране"
     intro={`Офисът на ${company.brandName} е в ж.к. Младост 1. Тук можете да кандидатствате за кредит на място и да зададете въпросите си на консултант.`}
   >

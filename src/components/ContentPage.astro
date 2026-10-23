@@ -1,13 +1,17 @@
 ---
-// Shared shell for content pages (FAQ, location): title, optional intro, prose body.
+// Shared shell for content pages (FAQ, location): breadcrumbs, title, optional intro, prose body.
+import Breadcrumbs, { type Crumb } from './Breadcrumbs.astro';
+
 interface Props {
   title: string;
+  crumbs: Crumb[];
   intro?: string;
 }
-const { title, intro } = Astro.props;
+const { title, intro, crumbs } = Astro.props;
 ---
 <section class="section content">
   <article class="container prose">
+    <Breadcrumbs crumbs={crumbs} />
     <h1 class="section-title">{title}</h1>
     {intro && <p class="intro">{intro}</p>}
     <slot />

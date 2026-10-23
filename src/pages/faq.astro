@@ -60,14 +60,15 @@ const faqs: { q: string; a: string; links?: { href: string; label: string }[] }[
     links: [{ href: '/disputes', label: 'Решаване на спорове' }],
   },
 ];
+const crumbs = [{ name: 'Въпроси', path: '/faq' }]; // same trail for the visible breadcrumbs and the JSON-LD
 ---
 <Base
   title="Въпроси за бързите кредити | Royal Finance"
   description="Отговори на често задавани въпроси: как да кандидатствате, какви документи са нужни, кога ще получите отговор и кой отпуска кредита."
-  crumbs={[{ name: 'Въпроси', path: '/faq' }]}
+  crumbs={crumbs}
   schema={[faqPage(faqs)]}
 >
-  <ContentPage title="Често задавани въпроси" intro="Кратки отговори на най-честите въпроси за кандидатстването и офиса ни в Младост.">
+  <ContentPage crumbs={crumbs} title="Често задавани въпроси" intro="Кратки отговори на най-честите въпроси за кандидатстването и офиса ни в Младост.">
     <div class="faq">
       {faqs.map(({ q, a, links }) => (
         <details>

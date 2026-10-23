@@ -1,15 +1,18 @@
 ---
 import { company } from '../data/company';
+import Breadcrumbs, { type Crumb } from './Breadcrumbs.astro';
 
 interface Props {
   title: string;
+  crumbs: Crumb[];
   /** Section anchors for the table of contents at the top. */
   toc: { id: string; label: string }[];
 }
-const { title, toc } = Astro.props;
+const { title, toc, crumbs } = Astro.props;
 ---
 <section class="section legal">
   <article class="container prose">
+    <Breadcrumbs crumbs={crumbs} />
     <h1 class="section-title">{title}</h1>
 
     <nav class="toc" aria-labelledby="toc-title">

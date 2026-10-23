@@ -1,0 +1,41 @@
+---
+// Visible breadcrumb trail. Pages pass the same `crumbs` to Base (BreadcrumbList JSON-LD), so what
+// Google reads and what people see always match.
+export type Crumb = { name: string; path: string };
+interface Props {
+  crumbs: Crumb[];
+}
+const { crumbs } = Astro.props;
+const trail = [{ name: 'Начало', path: '/' }, ...crumbs];
+---
+<nav class="crumbs" aria-label="Навигационна пътека">
+  <ol>
+    {trail.map((c, i) =>
+      i < trail.length - 1 ? (
+        <li><a href={c.path}>{c.name}</a></li>
+      ) : (
+        <li aria-current="page">{c.name}</li>
+      ),
+    )}
+  </ol>
+</nav>
+
+<style>
+  .crumbs { margin-bottom: 1rem; font-size: 0.875rem; }
+  .crumbs ol { display: flex; flex-wrap: wrap; align-items: center; gap: 0.25rem 0; margin: 0; padding: 0; list-style: none; }
+  .crumbs li { margin: 0; color: var(--text-muted); } /* override the .prose list spacing */
+  /* Thin gold chevron between items, drawn with CSS so screen readers do not read it */
+  li + li::before {
+    content: '';
+    display: inline-block;
+    width: 0.4rem;
+    height: 0.4rem;
+    margin: 0 0.7rem 0.1rem 0.55rem;
+    border-top: 1px solid var(--gold-1);
+    border-right: 1px solid var(--gold-1);
+    transform: rotate(45deg);
+  }
+  .crumbs a { color: var(--text-muted); text-decoration: none; }
+  .crumbs a:hover { color: var(--gold-2); text-decoration: underline; text-underline-offset: 3px; }
+  [aria-current] { color: var(--text); }
+</style>
