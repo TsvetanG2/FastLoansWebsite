@@ -1,17 +1,17 @@
 # CLAUDE.md — Royal Finance website
 
 Marketing site for a Bulgarian fast-loan company. One page, one feature: the loan application form.
-All visible site copy is in **Bulgarian**. Code, comments and commits in English.
+All visible site copy is in **Bulgarian**, formal „Вие“ everywhere (client decision 2026-10-23). Code, comments and commits in English.
 
 ## Scope
 
 **Build:**
 - Single landing page (desktop + mobile), sections in this order:
-  1. Header — logo, nav (Начало, За нас, Контакти — home-page sections only), phone (no working hours). Локация (/location) and Въпроси (/faq) are in the footer nav. Same-page links glide without "#" in the URL; the section/page in view is marked (gold bar, aria-current)
+  1. Header — logo, nav (Начало, Защо ние → `#about` on „Как бързото финансиране Ви помага“, Контакти — home-page sections only), phone (no working hours). Локация (/location) and Въпроси (/faq) are in the footer nav. Same-page links glide without "#" in the URL; the section/page in view is marked (gold bar, aria-current)
   2. Hero — background photo with dark overlay, logo, H1 „Бързо финансиране“ (client decision; not „Бързи кредити в Младост“ in titles either — the place stays in the intro and descriptions). `/location` H1 is also „Бързо финансиране“, tagline, subline, application form on the right (below on mobile). No CTA button: the form is already visible. Logo/copy start level with the top of the form card
-  3. Benefits strip — 4 items with icons; first item: "Бързо одобрение — до 10 минути", third: "Гъвкави срокове — от 3 до 60 месеца"
+  3. „Как бързото финансиране Ви помага“ (`UseCases.astro`, client copy 2026-10-23; replaced the 4-icon benefits strip) — intro + 3 cases one under another, no icons: Непредвидени разходи, Важно събитие, Необходимост от допълнителни средства
   4. "Защо да избереш Royal Finance?" — short text + checklist
-  5. "Как да кандидатстваш?" — 3 steps: Попълни формата → Получете отговор до 10 минути → Вземи своя кредит
+  5. „Как да кандидатствате?“ — 3 steps, no numbers (client 2026-10-23): Кандидатствайте онлайн → Получете одобрение → Вземете желаната сума
   6. Contact block — phone, hours, email
   7. Footer — logo, nav, row of legal links (Политика за поверителност · Общи условия · Решаване на спорове · Информация за кредитора), row with legal name, ЕИК, БНБ reg. №, © year
 - Content pages (spec: `seo.md`; formal "Вие"; layout `ContentPage.astro`):
@@ -20,7 +20,7 @@ All visible site copy is in **Bulgarian**. Code, comments and commits in English
   - `/404` (custom, noindex) and `/maintenance` (noindex; shown for every URL with 503 when `MAINTENANCE_MODE=1` at build — see `scripts/vercel-output.mjs`)
 - Legal pages (spec: `legal-pages.md`; all texts are a DRAFT for the client's lawyer; formal "Вие"; TOC at the top, "В сила от" at the bottom; shared layout `LegalPage.astro`):
   - `/privacy` Политика за поверителност — must list every field the form actually collects
-  - `/about` За нас и информация за кредитора — two parts: agent, then lender (БНБ register link)
+  - `/about` Информация за кредитора — two parts: Royal Finance (agent), then the lender (БНБ register link)
   - `/disputes` Решаване на спорове — never link the EU ODR platform (closed after 19.07.2025)
   - `/terms` Общи условия за ползване на сайта
   - URLs and anchors are English (decided 2026-10-23): pages `/about`, `/privacy`, `/terms`, `/disputes`; anchors `#home`, `#about`, `#contact`, form `#apply`. The Bulgarian slugs from `legal-pages.md` (`/za-nas`, `/poveritelnost`, `/obshti-usloviya`, `/sporove`) 301-redirect to them. No accessibility statement page (micro-enterprise exemption); the site still meets WCAG 2.1 AA.
@@ -47,23 +47,25 @@ If something is not listed under "Build", ask before adding it.
 
 ## The form
 
-Three steps, in this order (form copy uses formal "Вие"). The card takes the height of the current step and eases between heights; steps fade and slide (with reduced motion: fade + height only, no slide). Each step's progress bar fills with the share of its fields that are valid.
+Four steps, in this order (form copy uses formal "Вие"). The card takes the height of the current step and eases between heights; steps fade and slide (with reduced motion: fade + height only, no slide). Each step's progress bar fills with the share of its fields that are valid.
 
 | Step | Field | Type | Rules |
 |---|---|---|---|
-| 1 Лични данни | Вашето име | text | required, 2–40 chars |
-| 1 | Вашата фамилия | text | required, 2–40 chars |
-| 1 | Телефон за връзка | tel | required; fixed "+359" prefix shown, stored as +359XXXXXXXXX |
-| 1 | Имейл | email | required |
-| 2 Адрес и работа | Причина за финансиране | select | Покупка на вещи / Плащане на сметки / Рефинансиране на други задължения / Друго |
-| 2 | Настоящ адрес | text | required, 5–200 chars |
-| 2 | Адрес по лична карта | text | required, 5–200 chars |
-| 2 | Град | select | all 257 towns in Bulgaria (`src/lib/cities.ts`) |
-| 2 | В собствено жилище ли живеете? | select | Да / При роднини / Под наем / Друго |
-| 2 | Какво работите | text | required, free text, 2–100 chars |
-| 3 Сума и срок | Желана сума | slider + number | 500–5 000 €, step 50 — TODO confirm range with client |
-| 3 | Срок | slider | 3–60 months, step 1 |
-| 3 | Съгласие | checkbox | required, unchecked by default, links to /terms and /privacy |
+| 1 Сума и срок | Желана сума | slider only (value shown, not typeable) | 500–5 000 €, step 50 — TODO confirm range with client |
+| 1 | Срок | slider | 3–60 months, step 1 |
+| 2 Лични данни | Вашето име | text | required, 2–40 chars |
+| 2 | Вашата фамилия | text | required, 2–40 chars |
+| 2 | Телефон за връзка | tel | required; fixed "+359" prefix shown, stored as +359XXXXXXXXX |
+| 2 | Имейл | email | required |
+| 3 Адрес и работа | Причина за финансиране | select | Покупка на вещи / Плащане на сметки / Рефинансиране на други задължения / Друго |
+| 3 | Настоящ адрес | text | required, 5–200 chars |
+| 3 | Адрес по лична карта | text | required, 5–200 chars |
+| 3 | Град | select | all 257 towns in Bulgaria (`src/lib/cities.ts`) |
+| 3 | В собствено жилище ли живеете? | select | Да / При роднини / Под наем / Друго |
+| 3 | Какво работите | text | required, free text, 2–100 chars |
+| 4 Потвърждение | Съгласие | checkbox | required, unchecked by default, links to /terms and /privacy |
+
+Amount and term come first (easy, engaging start). Consent, submit and the disclaimers have their own last step so no step is taller than the hero (a taller hero used to zoom the cover photo; the photo is now pinned to a fixed height anyway). The submit button looks inactive (dark, gold outline, `aria-disabled`) until consent is ticked but stays clickable, so a click explains what is missing. Every form control is ≥16px font size, or iOS Safari zooms the page on focus.
 
 Requirements:
 - Enter in a field = "Продължете" (steps 1–2) / submit (step 3); selects keep their own Enter
@@ -79,7 +81,7 @@ Submission flow (`/api/apply`, emails via Resend, never called from the browser)
    - `reply_to` = the applicant's email
    - if this email fails → error to the user with a retry option
 2. Confirmation to the applicant, in Bulgarian:
-   - "Получихме кандидатурата ти. Наш консултант ще се свърже с теб скоро."
+   - "Получихме кандидатурата Ви. Наш консултант ще се свърже с Вас скоро."
    - never repeat the amount, term or any other personal data
    - never say "одобрена" or "приета" — only "получена"
    - if only this email fails → still show success

@@ -1,6 +1,6 @@
 # Royal Finance — сайт за бързи кредити
 
-Едностраничен сайт (Astro, статичен) с форма за кандидатстване в 3 стъпки.
+Едностраничен сайт (Astro, статичен) с форма за кандидатстване в 4 стъпки.
 Заявките се изпращат по имейл през Resend от една serverless функция (`/api/apply`) във Vercel.
 
 Пълните правила за проекта (обхват, дизайн, compliance) са в [CLAUDE.md](CLAUDE.md).
@@ -88,7 +88,7 @@ python tests/e2e/test_csp.py
 
 ```
 src/
-  components/   Header, Hero, ApplyForm, Benefits, Why, Steps, Contact, Footer, LegalPage
+  components/   Header, Hero, ApplyForm, UseCases, Why, Steps, Contact, Footer, LegalPage
   data/company.ts данни за фирмата — единственият източник за правните страници, футъра, контактите и имейлите
   config/site.ts  съкратен изглед на company.ts за header-а и имейлите + менюто
   lib/
