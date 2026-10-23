@@ -22,7 +22,12 @@ import heroBg from '../../assets/background.webp';
   />
   <div class="container hero-grid">
     <div class="hero-copy">
-      <img class="hero-logo" src="/logo.svg" alt="Royal Finance" width="220" height="224" />
+      <!-- The approved logo file is not modified: the shine is CSS layered on top, clipped to its shape -->
+      <span class="hero-logo">
+        <img src="/logo.svg" alt="Royal Finance" width="220" height="224" />
+        <img class="gloss" src="/logo.svg" alt="" width="220" height="224" aria-hidden="true" />
+        <img class="glint" src="/logo.svg" alt="" width="220" height="224" aria-hidden="true" />
+      </span>
       <h1 id="hero-title">Бързо финансиране</h1>
       <p class="tagline">Вашите планове заслужават подкрепа</p>
       <p class="lead">
@@ -112,10 +117,57 @@ import heroBg from '../../assets/background.webp';
     }
     /* Copy starts level with the top of the form card */
     .hero-copy { align-self: start; }
-    .hero-logo { display: block; width: 13.5rem; height: auto; margin-bottom: 0.5rem; }
+    .hero-logo { display: block; width: 13.5rem; margin-bottom: 0.5rem; }
   }
   /* Narrow desktops: smaller logo so the headline and intro stay above the fold */
   @media (min-width: 1024px) and (max-width: 1279px) {
     .hero-logo { width: 10rem; }
+  }
+
+  /* Logo shine: a warm glow, a fixed metallic highlight and one sweep of light (on load and on
+     hover). The highlights are brighter copies of the same logo shown through gradient masks,
+     so only the gold catches light and the approved file stays untouched. */
+  .hero-logo { position: relative; }
+  .hero-logo img {
+    display: block;
+    width: 100%;
+    height: auto;
+    filter: brightness(1.08) saturate(1.15) drop-shadow(0 0 18px rgba(232, 201, 122, 0.28));
+  }
+  .hero-logo .gloss,
+  .hero-logo .glint {
+    position: absolute;
+    inset: 0;
+    pointer-events: none;
+  }
+  /* Fixed highlight: light from the top left, like polished metal */
+  .hero-logo .gloss {
+    filter: brightness(1.45) saturate(0.85);
+    -webkit-mask-image: linear-gradient(160deg, #000 0%, rgba(0, 0, 0, 0.35) 35%, transparent 55%);
+    mask-image: linear-gradient(160deg, #000 0%, rgba(0, 0, 0, 0.35) 35%, transparent 55%);
+  }
+  /* Moving glint: a narrow bright band that crosses the logo */
+  .hero-logo .glint {
+    filter: brightness(1.9) saturate(0.6);
+    -webkit-mask-image: linear-gradient(115deg, transparent 42%, #000 50%, transparent 58%);
+    mask-image: linear-gradient(115deg, transparent 42%, #000 50%, transparent 58%);
+    -webkit-mask-size: 300% 100%;
+    mask-size: 300% 100%;
+    -webkit-mask-repeat: no-repeat;
+    mask-repeat: no-repeat;
+    -webkit-mask-position: 100% 0;
+    mask-position: 100% 0;
+  }
+  @media (prefers-reduced-motion: no-preference) {
+    .hero-logo .glint { animation: logo-glint 1.6s cubic-bezier(0.4, 0, 0.2, 1) 0.6s both; }
+    .hero-logo:hover .glint { animation: logo-glint-again 1.3s cubic-bezier(0.4, 0, 0.2, 1); }
+  }
+  @keyframes logo-glint {
+    from { -webkit-mask-position: 100% 0; mask-position: 100% 0; }
+    to { -webkit-mask-position: 0% 0; mask-position: 0% 0; }
+  }
+  @keyframes logo-glint-again {
+    from { -webkit-mask-position: 100% 0; mask-position: 100% 0; }
+    to { -webkit-mask-position: 0% 0; mask-position: 0% 0; }
   }
 </style>
