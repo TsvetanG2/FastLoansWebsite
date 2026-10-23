@@ -42,6 +42,14 @@ npm run build          # production build → .vercel/output (+ headers и ре�
 (Vercel, Upstash, Turnstile, Resend, домейн, мониторинг), е чеклист в [SECURITY_TODO.md](SECURITY_TODO.md).
 Първо тествай с `LEADS_EMAIL_TO=delivered@resend.dev`, после смени с истинския адрес.
 
+## Maintenance режим
+
+Vercel → Settings → Environment Variables → `MAINTENANCE_MODE` = `1` (само Production) → Redeploy.
+Всички адреси показват страницата „Сайтът се обновява“ със статус 503 (Google го приема за временно).
+Изключване: изтрий променливата → Redeploy. Локално: `MAINTENANCE_MODE=1 npm run build && node tests/e2e/serve-output.mjs`.
+
+SEO ръчните стъпки са в [SEO_TODO.md](SEO_TODO.md).
+
 ## Тестове
 
 Unit: `npm test`.
@@ -61,6 +69,12 @@ RESEND_BASE_URL=http://127.0.0.1:8790 UPSTASH_REDIS_REST_URL=http://127.0.0.1:87
 python tests/e2e/test_form.py      # формата, грешките, API проверките, лимитите
 python tests/e2e/test_legal.py     # правните страници, футъра, контактите
 node tests/e2e/rate-limit.mjs      # 10 заявки подред → 6-тата трябва да е 429
+```
+
+SEO (статични проверки на build-а — title, H1, canonical, JSON-LD, sitemap, robots):
+
+```bash
+npm run build && python tests/e2e/test_seo.py
 ```
 
 CSP (production build с production headers):
@@ -87,6 +101,8 @@ src/
   pages/
     index.astro
     about.astro, privacy.astro, terms.astro, disputes.astro   правни страници (чернова)
+    faq.astro, location.astro   въпроси и офис в Младост
+    404.astro, maintenance.astro
     api/apply.ts    приема заявката и праща имейлите
     api/health.ts   GET → 200 ok (за мониторинг)
 assets/           логото (източник) и снимката за hero

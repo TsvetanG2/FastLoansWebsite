@@ -53,6 +53,7 @@ X-Frame-Options: DENY
 Content-Security-Policy: default-src 'self'; script-src 'self' https://challenges.cloudflare.com; frame-src https://challenges.cloudflare.com; connect-src 'self'; img-src 'self' data:; style-src 'self' 'unsafe-inline'; font-src 'self'; form-action 'self'; frame-ancestors 'none'; base-uri 'self'; object-src 'none'
 ```
 
+- Office map on `/location`: MapLibre GL (bundled) + OpenFreeMap vector tiles — `connect-src`/`img-src https://tiles.openfreemap.org`, `img-src blob:`, `worker-src 'self' blob:`/`child-src 'self' blob:` for MapLibre's worker (bundled same-origin file). No cookies, so no consent banner. No Google Maps (cookies).
 - Avoid inline `<script>`; if Astro emits one, use a hash in the CSP rather than `'unsafe-inline'` for scripts.
 - After deploy, check headers with securityheaders.com and the CSP in the browser console (Turnstile must still render).
 - Do **not** add `preload` to HSTS yet.

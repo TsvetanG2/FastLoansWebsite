@@ -7,13 +7,17 @@ All visible site copy is in **Bulgarian**. Code, comments and commits in English
 
 **Build:**
 - Single landing page (desktop + mobile), sections in this order:
-  1. Header — logo, anchor nav (Начало, За нас, Контакти), phone + working hours
-  2. Hero — background photo with dark overlay, logo, headline, subline, application form on the right (below on mobile). No CTA button: the form is already visible. Logo/copy start level with the top of the form card
+  1. Header — logo, nav (Начало, За нас, Контакти — home-page sections only), phone (no working hours). Локация (/location) and Въпроси (/faq) are in the footer nav. Same-page links glide without "#" in the URL; the section/page in view is marked (gold bar, aria-current)
+  2. Hero — background photo with dark overlay, logo, H1 „Бързо финансиране“ (client decision; not „Бързи кредити в Младост“ in titles either — the place stays in the intro and descriptions). `/location` H1 is also „Бързо финансиране“, tagline, subline, application form on the right (below on mobile). No CTA button: the form is already visible. Logo/copy start level with the top of the form card
   3. Benefits strip — 4 items with icons; first item: "Бързо одобрение — до 10 минути", third: "Гъвкави срокове — от 3 до 60 месеца"
   4. "Защо да избереш Royal Finance?" — short text + checklist
   5. "Как да кандидатстваш?" — 3 steps: Попълни формата → Получете отговор до 10 минути → Вземи своя кредит
   6. Contact block — phone, hours, email
   7. Footer — logo, nav, row of legal links (Политика за поверителност · Общи условия · Решаване на спорове · Информация за кредитора), row with legal name, ЕИК, БНБ reg. №, © year
+- Content pages (spec: `seo.md`; formal "Вие"; layout `ContentPage.astro`):
+  - `/faq` — 8–12 real questions, facts only from company.ts / approved claims; FAQPage JSON-LD. No lender in the FAQ or landing copy (no „Кой отпуска кредита?“, no „кредиторът …“) — customers are pointed only to Royal Finance
+  - `/location` — office in Младост 1: address + maps link, static map (`OfficeMap.astro`, generated from OpenStreetMap by `scripts/make-office-map.mjs`, shown only when `company.office.geo` is set); interactive map: MapLibre GL + OpenFreeMap „Liberty“ vector style (light, Google-like, labels in Bulgarian; free for commercial use, no key, no cookies → no banner). No Google Maps embed (cookies). MapLibre (~430 KB gz) loads only when the map is on screen and the visitor has interacted (scroll/touch/mouse/key); until then — and without JS — the static image (light OSM, same pin) stands in. Keep it that way or mobile Lighthouse drops to ~65. The image also stays if OpenFreeMap fails or does not load within 10 s (no broken/empty map); /privacy names OpenFreeMap (IP passed to the provider, no cookies), hours, what to bring (only an ID card), contacts, CTA to the form. No invented transport lines
+  - `/404` (custom, noindex) and `/maintenance` (noindex; shown for every URL with 503 when `MAINTENANCE_MODE=1` at build — see `scripts/vercel-output.mjs`)
 - Legal pages (spec: `legal-pages.md`; all texts are a DRAFT for the client's lawyer; formal "Вие"; TOC at the top, "В сила от" at the bottom; shared layout `LegalPage.astro`):
   - `/privacy` Политика за поверителност — must list every field the form actually collects
   - `/about` За нас и информация за кредитора — two parts: agent, then lender (БНБ register link)
@@ -62,6 +66,7 @@ Three steps, in this order (form copy uses formal "Вие"). The card takes the 
 | 3 | Съгласие | checkbox | required, unchecked by default, links to /terms and /privacy |
 
 Requirements:
+- Enter in a field = "Продължете" (steps 1–2) / submit (step 3); selects keep their own Enter
 - Validate client-side AND server-side (same schema, e.g. zod shared between both)
 - `/api/apply` checks, cheapest first (see `security.md`): method/content type/Origin → 403; body > 4 KB → 413; strict zod schema (unknown keys → 400, field errors → 422); honeypot `company_website` → fake 200; Turnstile (`action: "apply"`, allowed hostname, `remoteip`; test keys accepted only in dev) → 403; rate limits → 429; then emails
 - Rate limits: Upstash Redis (`@upstash/ratelimit`, eu-central-1) — per IP 5/10 min + 20/day, per email 3/day, per phone 3/day; global 200/hour → keep leads, skip confirmations. Keys are `sha256(value + RATE_LIMIT_SALT)`. Redis down → continue with a warning. Never in-memory counters (they do not work on serverless)
@@ -134,6 +139,8 @@ Dark luxury style: black background, gold accents, serif headings.
 
 - Lighthouse ≥ 95 in Performance, Accessibility, Best Practices, SEO
 - `<html lang="bg">`, meta title/description in Bulgarian, Open Graph image
+- SEO (spec: `seo.md`; manual steps in `SEO_TODO.md`): local target „бързи кредити Младост/София“. Unique title (≤ 60) + description per page; one H1; canonical `https://royalfinance.bg/...` without trailing slash (`trailingSlash: 'never'`, `/x/` → 308); JSON-LD from `src/lib/seo.ts` (FinancialService on every page, BreadcrumbList on subpages, no ratings); sitemap via `@astrojs/sitemap` (no 404/maintenance); `robots.txt` disallows `/api/`. NAP identical everywhere: office бул. „Андрей Сахаров“ № 11, ж.к. Младост 1, 1784 София (`company.officeAddress`); the registered seat is the same address (client, 2026-10-23)
+- Never use: „без проверка в ЦКР“, „с лошо ЦКР“, „гарантирано одобрение“, „без доходи“, „100% одобрение“. Not until the client confirms: „кредит в брой“, „пари в брой“, „до заплата“
 - Images in WebP/AVIF with width/height set
 - Use the `webapp-testing` skill to check the form after every change: valid submit, each validation error, mobile 375 px, desktop 1440 px
 

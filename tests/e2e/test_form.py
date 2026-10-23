@@ -229,6 +229,33 @@ with sync_playwright() as p:
         ok(f'[{label}] no console errors', not errors, '; '.join(errors))
         ctx.close()
 
+    # Keyboard only: Enter moves through the steps and submits
+    mock('/__reset', {})
+    ctx, page, errors = new_page(browser, 1440, 900)
+    fill_step1(page)
+    page.locator('#email').press('Enter')
+    page.wait_for_function("document.getElementById('apply-form').dataset.step === '2'")
+    ok('Enter in step 1 → step 2', page.get_attribute('#apply-form', 'data-step') == '2')
+    page.wait_for_function("document.getAnimations().filter(a => a.playState === 'running').length === 0")
+    ok('focus moves to the first field of step 2', page.evaluate('document.activeElement.id') == 'purpose')
+    page.locator('#purpose').press('Enter')  # a select keeps its own Enter: no step change
+    ok('Enter on a select does not advance', page.get_attribute('#apply-form', 'data-step') == '2')
+    fill_step2(page)
+    page.locator('#currentAddress').press('Enter')
+    page.wait_for_function("document.getElementById('apply-form').dataset.step === '3'")
+    ok('Enter in step 2 → step 3', True)
+    page.wait_for_function("document.getAnimations().filter(a => a.playState === 'running').length === 0")
+    page.locator('#amount').press('Enter')
+    ok('Enter in step 3 without consent shows the consent error', 'Общите условия' in (page.text_content('#consent-error') or ''))
+    page.check('#consent')
+    page.locator('#amount').press('Enter')
+    expect(page.locator('#apply-success')).to_be_visible(timeout=20000)
+    ok('Enter in step 3 submits', len(sent()) == 2, str(len(sent())))
+    page.goto(BASE); page.wait_for_load_state('networkidle')
+    page.fill('#firstName', 'И'); page.locator('#firstName').press('Enter')
+    ok('Enter with an invalid field stays and shows the error', page.get_attribute('#apply-form', 'data-step') == '1' and (page.text_content('#firstName-error') or '') != '')
+    ctx.close()
+
     # Lead email fails -> error with retry -> retry succeeds
     mock('/__reset', {}); mock('/__mode', {'lead': 'fail'})
     ctx, page, errors = new_page(browser, 375, 812)

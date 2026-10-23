@@ -27,7 +27,7 @@ WATCH = """window.__csp = []; document.addEventListener('securitypolicyviolation
   e => window.__csp.push(e.violatedDirective + ' ' + e.blockedURI));"""
 
 with sync_playwright() as p:
-    b = p.chromium.launch()
+    b = p.chromium.launch(args=['--use-gl=swiftshader', '--enable-webgl', '--ignore-gpu-blocklist'])
     for w, h in [(375, 812), (1440, 900)]:
         ctx = b.new_context(viewport={'width': w, 'height': h})
         ctx.add_init_script(WATCH)
@@ -55,8 +55,15 @@ with sync_playwright() as p:
         # Reveal script works (external module)
         page.evaluate('window.scrollTo(0, document.body.scrollHeight)'); page.wait_for_timeout(1200)
         ok(f'[{w}] scroll reveal runs', page.evaluate("[...document.querySelectorAll('[data-reveal]')].some(e => e.classList.contains('is-visible'))"))
-        for path in ['/privacy', '/about']:
+        for path in ['/privacy', '/about', '/faq', '/location']:
             page.goto(BASE + path); page.wait_for_load_state('networkidle')
+        # Interactive map: MapLibre (self, worker 'self') + OpenFreeMap (connect/img)
+        page.goto(BASE + '/location'); page.wait_for_load_state('networkidle')
+        page.evaluate("document.querySelector('.office-map').scrollIntoView()")
+        wait_until(page, "!!document.querySelector('.office-map canvas.maplibregl-canvas')", timeout=30)
+        page.wait_for_timeout(5000)
+        res = page.evaluate("performance.getEntriesByType('resource').map(e => e.name)")
+        ok(f'[{w}] OpenFreeMap tiles + glyphs load under CSP', any('tiles.openfreemap.org/planet' in r for r in res) and any('/fonts/' in r for r in res))
         violations = page.evaluate('window.__csp')
         ok(f'[{w}] no CSP violations', not violations, '; '.join(violations))
         ok(f'[{w}] no console errors', not [c for c in console if 'Content Security Policy' in c or 'Refused' in c], '; '.join(console))
