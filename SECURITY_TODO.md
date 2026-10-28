@@ -10,7 +10,7 @@
 - [ ] **Vercel Firewall** (ако Hobby позволява custom rule): custom rule — `/api/apply`, повече от 10 заявки / минута от един IP → deny. Знай къде е бутонът **Attack Mode** за спешни случаи.
 - [ ] **Vercel:** Deployment Protection за preview deployments; 2FA на акаунта
 - [ ] **Cloudflare Turnstile:** widget, ограничен до `royalfinance.bg`, `www.royalfinance.bg` (+ отделен widget или тестовите ключове за localhost)
-- [ ] **Resend:** 2FA; **sending-only** API ключ, ограничен до домейна `royalfinance.bg`; известия за използване
+- [ ] **Resend:** 2FA; API ключ с **Full access** (нужен за `/api/inbound` — sending-only ключ не може да чете получените писма), само в Vercel като Sensitive; известия за използване
 - [ ] **Upstash:** база в **eu-central-1**; 2FA
 - [ ] **SuperHosting:** 2FA, силна уникална парола, registrar/transfer lock на домейна
 - [ ] **GitHub:** private repo, 2FA
@@ -19,7 +19,7 @@
 
 ## Добавени при изпълнението
 
-- [ ] **Vercel → Analytics → Enable** (Web Analytics). Без това `/_vercel/insights/script.js` не съществува и няма статистика.
+- [x] **Vercel → Analytics → Enable** (Web Analytics). Без това `/_vercel/insights/script.js` не съществува и няма статистика.
 
 - [ ] **Vercel → Environment Variables:**
   - преименувай `TURNSTILE_SITE_KEY` → **`PUBLIC_TURNSTILE_SITE_KEY`** (иначе build-ът спира)

@@ -8,7 +8,7 @@ All visible site copy is in **Bulgarian**, formal „Вие“ everywhere (clien
 **Build:**
 - Single landing page (desktop + mobile), sections in this order:
   1. Header — logo, nav (Начало, Защо ние → `#about` on „Как бързото финансиране Ви помага“, Контакти — home-page sections only), phone (no working hours). Локация (/location) and Въпроси (/faq) are in the footer nav. Same-page links glide without "#" in the URL; the section/page in view is marked (gold bar, aria-current)
-  2. Hero — background photo with dark overlay, logo, H1 „Бързо финансиране“ (client decision; not „Бързи кредити в Младост“ in titles either — the place stays in the intro and descriptions). `/location` H1 is also „Бързо финансиране“, tagline, subline, application form on the right (below on mobile). No CTA button: the form is already visible. Logo/copy start level with the top of the form card
+  2. Hero — background photo with dark overlay, logo, H1 „Бързи кредити и бързо финансиране в София“, home title „Бързи кредити в София, Младост | Royal Finance“ (client, 2026-10-28; replaced „Бързо финансиране“). `/location` H1 stays „Бързо финансиране“, tagline, subline, application form on the right (below on mobile). No CTA button: the form is already visible. Logo/copy start level with the top of the form card
   3. „Как бързото финансиране Ви помага“ (`UseCases.astro`, client copy 2026-10-23; replaced the 4-icon benefits strip) — intro + 3 cases one under another, no icons: Непредвидени разходи, Важно събитие, Необходимост от допълнителни средства
   4. "Защо да избереш Royal Finance?" — short text + checklist
   5. „Как да кандидатствате?“ — 3 steps, no numbers (client 2026-10-23): Кандидатствайте онлайн → Получете отговор → Вземете желаната сума
@@ -16,7 +16,7 @@ All visible site copy is in **Bulgarian**, formal „Вие“ everywhere (clien
   7. Footer — logo, nav, row of legal links (Политика за поверителност · Общи условия · Решаване на спорове · Информация за кредитора), row with legal name, ЕИК, БНБ reg. №, © year
 - Content pages (spec: `seo.md`; formal "Вие"; layout `ContentPage.astro`):
   - `/faq` — 8–12 real questions, facts only from company.ts / approved claims; FAQPage JSON-LD. No lender in the FAQ or landing copy (no „Кой отпуска кредита?“, no „кредиторът …“) — customers are pointed only to Royal Finance
-  - `/location` — office in Младост 1: address + maps link, static map (`OfficeMap.astro`, generated from OpenStreetMap by `scripts/make-office-map.mjs`, shown only when `company.office.geo` is set); interactive map: MapLibre GL + OpenFreeMap „Liberty“ vector style (light, Google-like, labels in Bulgarian; free for commercial use, no key, no cookies → no banner). No Google Maps embed (cookies). MapLibre (~430 KB gz) loads only when the map is on screen and the visitor has interacted (scroll/touch/mouse/key); until then — and without JS — the static image (light OSM, same pin) stands in. Keep it that way or mobile Lighthouse drops to ~65. The image also stays if OpenFreeMap fails or does not load within 10 s (no broken/empty map); /privacy names OpenFreeMap (IP passed to the provider, no cookies), hours, what to bring (only an ID card), contacts, CTA to the form. No invented transport lines
+  - `/location` — office in Младост 1: address + maps link, „Виж ни в Google Maps“ → the Google Business Profile, static map (`OfficeMap.astro`, generated from OpenStreetMap by `scripts/make-office-map.mjs`, shown only when `company.office.geo` is set); interactive map: MapLibre GL + OpenFreeMap „Liberty“ vector style (light, Google-like, labels in Bulgarian; free for commercial use, no key, no cookies → no banner). No Google Maps embed (cookies → consent banner; decided again 2026-10-28) — the Google link is the profile button. MapLibre (~430 KB gz) loads only when the map is on screen and the visitor has interacted (scroll/touch/mouse/key); until then — and without JS — the static image (light OSM, same pin) stands in. Keep it that way or mobile Lighthouse drops to ~65. The image also stays if OpenFreeMap fails or does not load within 10 s (no broken/empty map); /privacy names OpenFreeMap (IP passed to the provider, no cookies), hours, what to bring (only an ID card), contacts, CTA to the form. No invented transport lines
   - `/404` (custom, noindex) and `/maintenance` (noindex; shown for every URL with 503 when `MAINTENANCE_MODE=1` at build — see `scripts/vercel-output.mjs`)
 - Legal pages (spec: `legal-pages.md`; all texts are a DRAFT for the client's lawyer; formal "Вие"; TOC at the top, "В сила от" at the bottom; shared layout `LegalPage.astro`):
   - `/privacy` Политика за поверителност — must list every field the form actually collects
@@ -140,8 +140,8 @@ Dark luxury style: black background, gold accents, serif headings.
 ## Quality bar
 
 - Lighthouse ≥ 95 in Performance, Accessibility, Best Practices, SEO
-- `<html lang="bg">`, meta title/description in Bulgarian, Open Graph image (`public/og.png`, 1200×630). `og:image`/`og:url` use `VERCEL_PROJECT_PRODUCTION_URL` at build (the vercel.app address until royalfinance.bg is connected) so link previews work before the domain is live; canonical stays royalfinance.bg
-- SEO (spec: `seo.md`; manual steps in `SEO_TODO.md`): local target „бързи кредити Младост/София“. Unique title (≤ 60) + description per page; one H1; canonical `https://www.royalfinance.bg/...` without trailing slash (`trailingSlash: 'never'`, `/x/` → 308); JSON-LD from `src/lib/seo.ts` (FinancialService on every page, BreadcrumbList on subpages, no ratings); visible breadcrumbs (`Breadcrumbs.astro`, above the H1 of every subpage) built from the same `crumbs` the page passes to Base, so they always match the JSON-LD; sitemap via `@astrojs/sitemap` (no 404/maintenance); `robots.txt` disallows `/api/`. NAP identical everywhere: office бул. „Андрей Сахаров“ № 11, ж.к. Младост 1, 1784 София (`company.officeAddress`); the registered seat is the same address (client, 2026-10-23)
+- `<html lang="bg">`, meta title/description in Bulgarian, Open Graph image (`public/og.png`, 1200×630). `og:image`/`og:url` use `VERCEL_PROJECT_PRODUCTION_URL` only while it is a `*.vercel.app` address, otherwise `site` (www); canonical is always www
+- SEO (spec: `seo.md`; manual steps in `SEO_TODO.md`): local target „бързи кредити Младост/София“. Unique title (≤ 60) + description per page; one H1; canonical `https://www.royalfinance.bg/...` without trailing slash (`trailingSlash: 'never'`, `/x/` → 308); JSON-LD from `src/lib/seo.ts` (FinancialService on every page, with `priceRange` = the form's amount range and `sameAs`/`hasMap` = `company.gbpUrl`, BreadcrumbList on subpages, no ratings); visible breadcrumbs (`Breadcrumbs.astro`, above the H1 of every subpage) built from the same `crumbs` the page passes to Base, so they always match the JSON-LD; sitemap via `@astrojs/sitemap` (no 404/maintenance); `robots.txt` disallows `/api/`. NAP identical everywhere: office бул. „Андрей Сахаров“ № 11, ж.к. Младост 1, 1784 София (`company.officeAddress`). Google Business Profile: `company.gbpUrl` (cid link); every address/maps link (`MapLink.astro`) opens it, and `company.office.geo` is its pin. The registered seat is the same address (client, 2026-10-23)
 - Never use: „без проверка в ЦКР“, „с лошо ЦКР“, „гарантирано одобрение“, „без доходи“, „100% одобрение“. Not until the client confirms: „кредит в брой“, „пари в брой“, „до заплата“
 - Images in WebP/AVIF with width/height set
 - Use the `webapp-testing` skill to check the form after every change: valid submit, each validation error, mobile 375 px, desktop 1440 px
@@ -159,7 +159,7 @@ npm test          # unit tests (vitest): schema, request guards, Turnstile check
 ## Env vars
 
 ```
-RESEND_API_KEY=        # server only
+RESEND_API_KEY=        # server only; Full access (a sending-only key gets restricted_api_key when /api/inbound reads received mail)
 EMAIL_FROM=            # verified sender, e.g. "Royal Finance <noreply@domain.bg>"
 LEADS_EMAIL_TO=        # where new applications go
 PUBLIC_TURNSTILE_SITE_KEY=  # the only browser-visible value, inlined at build time
@@ -174,6 +174,14 @@ INBOUND_FORWARD_TO=         # /api/inbound: where they are forwarded, e.g. royal
 ```
 Production values live in Vercel → Settings → Environment Variables. Locally use `.env`.
 Never commit `.env`. Keep `.env.example` up to date.
+
+## Status (2026-10-24)
+
+- Live on Vercel: https://www.royalfinance.bg (apex 308 → www), DNS at Vercel (nameservers set at SuperHosting). Real Turnstile keys, Web Analytics on, `/api/health` 200
+- Resend domain `royalfinance.bg` (eu-west-1) is `partially_verified`: DKIM, `send`, MX verified; `rsend` CNAME → rsend-euw1.forge.rmta.net resolves correctly everywhere but Resend still shows it pending (support: wait up to 72 h). Until then Resend refuses to send (403 "domain is not verified") → the live form returns 502 and finance@ forwarding fails. Do not delete/re-add the records. When verified: test-send to `delivered@resend.dev`, then test the form and finance@ → royalfinance@abv.bg on the live site
+- Vercel env: `EMAIL_FROM=Royal Finance <noreply@royalfinance.bg>`, `LEADS_EMAIL_TO` and `INBOUND_FORWARD_TO` = royalfinance@abv.bg, `INBOUND_ADDRESSES=finance@royalfinance.bg`, webhook https://www.royalfinance.bg/api/inbound (`email.received`). `ALLOWED_ORIGINS` no longer needed
+- Search Console reported „Sitemap не можа да бъде прочетена“ for `sitemap-index.xml`; the sitemap is valid (200, application/xml, 7 URLs, all 200) — re-submit in a www/Domain property and wait
+- Open items (client, lawyer, dashboards, SEO): `LEGAL_TODO.md`, `SECURITY_TODO.md`, `SEO_TODO.md`. Main client decisions: amount range, the three TODO-CLAIM points in Why.astro, holiday hours, ЕГН, documents („само лична карта“)
 
 ## Testing
 
