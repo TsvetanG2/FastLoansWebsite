@@ -1,6 +1,7 @@
 // JSON-LD (schema.org) built from src/data/company.ts — never hardcode company data here.
 // Missing data (photos, geo, profiles) is simply left out until the client supplies it.
 import { company } from '../data/company';
+import { AMOUNT, formatEur } from './application';
 
 export const SITE = 'https://www.royalfinance.bg'; // primary domain (apex redirects here)
 
@@ -23,6 +24,8 @@ export function financialService() {
     image: `${SITE}/og.png`,
     telephone: company.phoneHref.replace('tel:', ''),
     email: company.email,
+    // The amount range of the form (not a cost figure)
+    priceRange: `${formatEur(AMOUNT.min)} – ${formatEur(AMOUNT.max)}`,
     address: {
       '@type': 'PostalAddress',
       streetAddress: company.office.streetAddress,
@@ -32,8 +35,9 @@ export function financialService() {
     },
     ...(company.office.geo && {
       geo: { '@type': 'GeoCoordinates', latitude: company.office.geo.lat, longitude: company.office.geo.lon },
-      hasMap: `https://www.google.com/maps/search/?api=1&query=${company.office.geo.lat},${company.office.geo.lon}`,
     }),
+    hasMap: company.gbpUrl,
+    sameAs: [company.gbpUrl],
     openingHoursSpecification: company.openingHours.map((h) => ({
       '@type': 'OpeningHoursSpecification',
       dayOfWeek: h.days,

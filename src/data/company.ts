@@ -26,9 +26,14 @@ export const company = {
      * After changing it run: node scripts/make-office-map.mjs <lat> <lon>
      * null = not known yet → no map and no geo (nothing is shown instead of a wrong pin).
      */
-    // OpenStreetMap: commercial building бул. Андрей Сахаров 11 (2026-10-23) — client to confirm the pin
-    geo: { lat: 42.6524536, lon: 23.3728051 } as { lat: number; lon: number } | null,
+    // The pin of the Google Business Profile (2026-10-28), so the site, JSON-LD and the profile match
+    geo: { lat: 42.6525113, lon: 23.3731487 } as { lat: number; lon: number } | null,
   },
+  /**
+   * Google Business Profile (stable cid link of „Royal Finance Младост“, from the client's share link
+   * 2026-10-28). Every "open in maps" link points here, and it is `sameAs` in the JSON-LD.
+   */
+  gbpUrl: 'https://maps.google.com/?cid=5018476934828207780',
   phone: '+359 888 807 152',
   phoneHref: 'tel:+359888807152',
   workingHours: 'Понеделник – петък: 10:00 – 19:00 ч.; събота: 10:00 – 16:00 ч.; неделя: почивен ден',

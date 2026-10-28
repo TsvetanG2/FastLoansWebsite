@@ -50,7 +50,7 @@ for url, path in sorted(pages.items()):
         fs = next((d for d in data if d.get('@type') == 'FinancialService'), {})
         ok(f'{url}: NAP in JSON-LD', fs.get('name') == 'Royal Finance' and fs.get('telephone') == '+359888807152'
            and fs.get('address', {}).get('streetAddress') == 'бул. „Андрей Сахаров“ № 11'
-           and fs.get('address', {}).get('postalCode') == '1784' and fs.get('geo', {}).get('latitude') == 42.6524536, json.dumps(fs.get('address'), ensure_ascii=False))
+           and fs.get('address', {}).get('postalCode') == '1784' and fs.get('geo', {}).get('latitude') == 42.6525113 and fs.get('sameAs') == [fs.get('hasMap')] and fs['hasMap'].startswith('https://maps.google.com/?cid=') and fs.get('priceRange') == '500 € – 5 000 €', json.dumps(fs.get('address'), ensure_ascii=False))
         ok(f'{url}: no rating/review markup', 'aggregateRating' not in html and '"Review"' not in html)
         imgs = re.findall(r'<img\b[^>]*>', html)
         has_alt = lambda i: re.search(r'\salt(=|\s|>)', i)  # bare `alt` == alt="" (decorative)
@@ -69,7 +69,7 @@ faq_ld = [json.loads(b) for b in re.findall(r'<script type="application/ld\+json
 fp = next((d for d in faq_ld if d['@type'] == 'FAQPage'), None)
 ok('/faq: FAQPage with 8–12 questions', fp and 8 <= len(fp['mainEntity']) <= 12, fp and str(len(fp['mainEntity'])))
 home = (STATIC / 'index.html').read_text(encoding='utf-8')
-ok('home: H1 „Бързо финансиране“ and no „Бързи кредити в Младост“ in the title (client decision)', re.search(r'<h1[^>]*>Бързо финансиране</h1>', home) and 'Бързи кредити в Младост' not in re.search(r'<title>([^<]*)', home).group(1))
+ok('home: title and H1 (client decision 2026-10-28)', re.search(r'<h1[^>]*>Бързи кредити и бързо финансиране в София</h1>', home) and re.search(r'<title>([^<]*)', home).group(1) == 'Бързи кредити в София, Младост | Royal Finance')
 ok('home: intro text (client copy)', re.search(r'class="lead"[^>]*>\s*Бърз кредит, кандидатствайте онлайн', home))
 ok('home: office address + hours visible', 'бул. „Андрей Сахаров“ № 11' in home and '10:00' in home)
 

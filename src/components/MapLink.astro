@@ -1,35 +1,16 @@
 ---
-// Address link that opens the phone's maps app:
-// - Android: `geo:` URI → system chooser (Google Maps, Waze, …)
-// - iPhone/iPad: Apple Maps
-// - everything else (and without JS): Google Maps in a new tab
+// Address link to the office's Google Business Profile (reviews, photos, directions). The same URL
+// on every device: Android opens it in the Google Maps app, elsewhere it opens in the browser.
 import { company } from '../data/company';
 
 interface Props { class?: string }
 const { class: className } = Astro.props;
-// Exact coordinates when known (precise pin), otherwise the address search text
-const query = company.office.geo ? `${company.office.geo.lat},${company.office.geo.lon}` : company.officeMapQuery;
-const q = encodeURIComponent(query);
 ---
 <a
   class={className}
-  href={`https://www.google.com/maps/search/?api=1&query=${q}`}
+  href={company.gbpUrl}
   target="_blank"
   rel="noopener"
-  data-maps-query={query}
-  aria-label={`${company.officeAddress} — отвори в карти`}
+  data-maps-link
+  aria-label={`${company.officeAddress} — отвори в Google Maps`}
 ><slot /></a>
-
-<script>
-  const ua = navigator.userAgent;
-  const isAndroid = /Android/i.test(ua);
-  const isIOS = /iPhone|iPad|iPod/.test(ua) || (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1);
-  if (isAndroid || isIOS) {
-    for (const a of document.querySelectorAll<HTMLAnchorElement>('a[data-maps-query]')) {
-      const q = encodeURIComponent(a.dataset.mapsQuery!);
-      a.href = isAndroid ? `geo:0,0?q=${q}` : `https://maps.apple.com/?q=${q}`;
-      // Native apps open in place; a new tab would leave a blank page behind
-      a.removeAttribute('target');
-    }
-  }
-</script>

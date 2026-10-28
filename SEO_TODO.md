@@ -29,9 +29,8 @@
 
 - [x] **Vercel → Settings → Domains:** `royalfinance.bg` и `www.royalfinance.bg`; основният е **www**, `royalfinance.bg`
       пренасочва към него (решение на клиента, 24.10.2026). HTTPS и пренасочването от http Vercel прави автоматично.
-- [ ] **Пинът на картата** е от OpenStreetMap (бул. Андрей Сахаров 11 → 42.6524536, 23.3728051) — потвърди, че е точно
-      на входа. За смяна: `geo` в `src/data/company.ts` + `node scripts/make-office-map.mjs <lat> <lon>`.
-- [ ] Когато има **Google Business Profile**: линка към профила (за `sameAs`).
+- [x] **Пинът на картата** е пинът от Google профила (42.6525113, 23.3731487, 28.10.2026) — сайтът, JSON-LD и профилът съвпадат. За смяна: `geo` в `src/data/company.ts` + `node scripts/make-office-map.mjs <lat> <lon>`.
+- [x] **Google Business Profile** „Royal Finance Младост“: `company.gbpUrl` в `src/data/company.ts` (`sameAs`, всички линкове „Виж в Google Maps“).
 - [ ] Когато има **снимки на офиса**: за `/location` и за `image` в JSON-LD (сега е OG картинката).
 - [ ] **Как се изплаща кредитът** (в брой/по сметка) и дали има кредити „до заплата“ — дотогава тези думи не се ползват.
 - [ ] **Документи:** на сайта пише „само валидна лична карта“ — потвърди.
