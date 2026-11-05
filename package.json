@@ -21,7 +21,7 @@
     "@vercel/analytics": "^2.0.1",
     "astro": "^7.3.8",
     "maplibre-gl": "^6.15.0",
-    "resend": "^6.34.1",
+    "resend": "^6.37.0",
     "zod": "^4.6.7"
   },
   "devDependencies": {
